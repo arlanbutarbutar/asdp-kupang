@@ -21,6 +21,11 @@
 <script src="../assets/js/Chart.roundedBarCharts.js"></script>
 <script src="../assets/js/jquery-3.5.1.min.js"></script>
 <script src="../assets/datatable/datatables.js"></script>
+
+<script>
+  CKEDITOR.replace('deskripsi');
+</script>
+
 <script>
   const messageSuccess = $(".message-success").data("message-success");
   const messageInfo = $(".message-info").data("message-info");

@@ -1,19 +1,51 @@
+<style>
+  .navbar .navbar-brand-wrapper {
+    background-color: #d9dadf;
+  }
+
+  .navbar-toggler {
+    display: none;
+  }
+
+  @media screen and (max-width: 991px) {
+    .img-brand {
+      display: none;
+    }
+
+    .navbar-toggler {
+      display: block;
+    }
+
+    .content-wrapper {
+      margin-top: -30px;
+    }
+
+    .navbar .navbar-brand-wrapper {
+      height: 65px;
+      padding: 0;
+      background-color: #d9dadf;
+    }
+
+    .sidebar {
+      margin-top: -30px;
+    }
+  }
+</style>
 <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row">
-  <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start" style="background-color: rgb(3, 164, 237);">
+  <div class="navbar-custom navbar-brand-wrapper d-flex align-items-center justify-content-start">
     <div class="me-3">
       <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-bs-toggle="minimize">
-        <span class="icon-menu text-white"></span>
+        <span class="mdi mdi-menu" style="color: #0C7DC4;"></span>
       </button>
     </div>
     <div>
       <a class="navbar-brand brand-logo d-flex" href="./">
-        <style>@media screen and (max-width: 400px){.img-brand{display: none;}}</style>
-        <img src="../assets/images/..." alt="Logo Brand" class="img-brand" style="width: 60px;height: 60px;">
+        <img src="../assets/images/logo-asdp.png" alt="Logo Brand" class="img-brand" style="width: 150px;height: 90px;">
       </a>
       <a class="nav-link navbar-brand brand-logo-mini" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
         <img class="img-xs rounded-circle" src="../assets/images/user.png" style="width: 40px;height: 40px;" alt="Profile image" />
       </a>
-      <div class="dropdown-menu dropdown-menu-right navbar-dropdown p-4" style="width: 200px;" aria-labelledby="UserDropdown">
+      <div class="dropdown-menu dropdown-menu-right navbar-dropdown p-4" style="width: 250px;" aria-labelledby="UserDropdown">
         <div class="dropdown-header text-center">
           <img class="img-md rounded-circle" src="../assets/images/user.png" style="width: 50px;" alt="Profile image">
           <p class="mb-1 mt-3 font-weight-semibold"><?= $_SESSION["data-user"]["username"] ?><br><?= $_SESSION["data-user"]["email"] ?></p>
@@ -41,11 +73,13 @@
     <ul class="navbar-nav ms-auto">
       <li class="nav-item dropdown d-none d-lg-block user-dropdown">
         <a class="nav-link" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-          <img class="img-xs rounded-circle" src="../assets/images/user.png" alt="Profile image"> </a>
-        <div class="dropdown-menu dropdown-menu-right navbar-dropdown p-0" style="width: 220px;" aria-labelledby="UserDropdown">
+          <img class="img-xs rounded-circle" src="../assets/images/user.png" alt="Profile image">
+        </a>
+        <div class="dropdown-menu dropdown-menu-right navbar-dropdown p-0" style="width: 250px;" aria-labelledby="UserDropdown">
           <div class="dropdown-header text-center">
             <img class="img-md rounded-circle" src="../assets/images/user.png" style="width: 50px;" alt="Profile image">
-            <p class="mb-1 mt-3 font-weight-semibold"><?= $_SESSION["data-user"]["username"] ?><br><?= $_SESSION["data-user"]["email"] ?></p>
+            <p class="mb-1 mt-3 font-weight-semibold"><?= $_SESSION["data-user"]["username"] ?></p>
+            <p class="mb-1 mt-3 font-weight-semibold" style="overflow-x: auto;"><?= $_SESSION["data-user"]["email"] ?></p>
           </div>
           <a style="cursor: pointer;" onclick="window.location.href='profil'" class="dropdown-item p-3">
             <i class="bi bi-person text-primary me-2"></i> Profil Saya</a>

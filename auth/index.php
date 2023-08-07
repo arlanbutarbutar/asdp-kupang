@@ -3,6 +3,17 @@ if (isset($_SESSION["data-user"])) {
   header("Location: ../views/");
   exit();
 }
+
+if (isset($_GET['crypt'])) {
+  $crypt = valid($conn, $_GET['crypt']);
+  $verify = mysqli_query($conn, "SELECT * FROM penumpang WHERE en_user='$crypt'");
+  if (mysqli_num_rows($verify) > 0) {
+    mysqli_query($conn, "UPDATE penumpang SET id_status='1' WHERE en_user='$crypt'");
+    $_SESSION['message-success'] = "Akun anda telah terverifikasi.";
+    $_SESSION['time-message'] = time();
+  }
+}
+
 $_SESSION["page-name"] = "Masuk";
 $_SESSION["page-url"] = "./";
 ?>
@@ -30,8 +41,7 @@ $_SESSION["page-url"] = "./";
         <div class="row w-100 mx-0">
           <div class="col-lg-4 mx-auto">
             <div class="auth-form-light text-center py-5 px-4 px-sm-5 shadow">
-              <img src="../assets/images/logo.png" style="width: 120px;margin-bottom: 10px;" alt="Logo ASDP Kupang">
-              <h2>ASDP Kupang</h2>
+              <img src="../assets/images/logo-asdp.png" style="width: 300px;margin-bottom: 10px;" alt="Logo ASDP Kupang">
               <h6 class="fw-light">Masuk untuk melanjutkan.</h6>
               <form class="pt-3" action="" method="POST">
                 <div class="form-group mt-3">
@@ -46,6 +56,10 @@ $_SESSION["page-url"] = "./";
                   <button type="submit" name="masuk" class="btn rounded-0 text-white" style="background-color: rgb(3, 164, 237);">Masuk</button>
                 </div>
               </form>
+              <hr style="width: 40%;">
+              <p style="margin: -9% 45% 0 45%;">Atau</p>
+              <hr style="width: 40%;margin: -2.6% 60% 0 60%;">
+              <p class="d-flex flex-nowrap justify-content-center mt-3">Belum punya akun? <a href="daftar" class="text-decoration-none" style="margin: 0 5px;">Daftar</a> sekarang</p>
               <p class="d-flex flex-nowrap justify-content-center mt-3">Kembali ke <a href="../" class="text-decoration-none" style="margin-left: 5px;">Beranda</a></p>
             </div>
           </div>
