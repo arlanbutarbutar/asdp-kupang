@@ -48,7 +48,7 @@
       <div class="dropdown-menu dropdown-menu-right navbar-dropdown p-4" style="width: 250px;" aria-labelledby="UserDropdown">
         <div class="dropdown-header text-center">
           <img class="img-md rounded-circle" src="../assets/images/user.png" style="width: 50px;" alt="Profile image">
-          <p class="mb-1 mt-3 font-weight-semibold"><?= $_SESSION["data-user"]["username"] ?><br><?= $_SESSION["data-user"]["email"] ?></p>
+          <p class="mb-1 mt-3 font-weight-semibold"><?= $_SESSION["data-user"]["username"] ?><br><?= $_SESSION["data-user"]["nomor_telepon"] ?></p>
         </div>
         <a style="cursor: pointer;" onclick="window.location.href='profil'" class="dropdown-item pb-3">
           <i class="bi bi-person me-2"></i> Profil Saya</a>
@@ -79,7 +79,7 @@
           <div class="dropdown-header text-center">
             <img class="img-md rounded-circle" src="../assets/images/user.png" style="width: 50px;" alt="Profile image">
             <p class="mb-1 mt-3 font-weight-semibold"><?= $_SESSION["data-user"]["username"] ?></p>
-            <p class="mb-1 mt-3 font-weight-semibold" style="overflow-x: auto;"><?= $_SESSION["data-user"]["email"] ?></p>
+            <p class="mb-1 mt-3 font-weight-semibold" style="overflow-x: auto;"><?= $_SESSION["data-user"]["nomor_telepon"] ?></p>
           </div>
           <a style="cursor: pointer;" onclick="window.location.href='profil'" class="dropdown-item p-3">
             <i class="bi bi-person text-primary me-2"></i> Profil Saya</a>

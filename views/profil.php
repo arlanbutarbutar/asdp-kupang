@@ -95,14 +95,6 @@ $_SESSION["page-url"] = "profil";
                                                                               } ?>" id="nomor_telepon" class="form-control text-center" placeholder="No. Telp" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4||3}" required>
                           </div>
                           <div class="form-group">
-                            <label for="email">Email <span class="text-danger">*</span></label>
-                            <input type="email" name="email" value="<?php if (isset($_POST['email'])) {
-                                                                      echo $_POST['email'];
-                                                                    } else {
-                                                                      echo $row['email'];
-                                                                    } ?>" id="email" class="form-control text-center" placeholder="Email" required>
-                          </div>
-                          <div class="form-group">
                             <label for="password">Kata Sandi <span class="text-danger">*</span></label>
                             <input type="password" name="password" id="password" class="form-control text-center" placeholder="Kata Sandi" required>
                           </div>
@@ -126,9 +118,9 @@ $_SESSION["page-url"] = "profil";
                                 <td class="w-75"><?= $row["username"] ?></td>
                               </tr>
                               <tr>
-                                <th scope="row">Email</th>
+                                <th scope="row">No. Handphone</th>
                                 <td>:</td>
-                                <td class="w-75"><?= $row["email"] ?></td>
+                                <td class="w-75"><?= $row["nomor_telepon"] ?></td>
                               </tr>
                             <?php } else { ?>
                               <tr>
@@ -152,14 +144,9 @@ $_SESSION["page-url"] = "profil";
                                 <td class="w-75"><?= $row["alamat"] ?></td>
                               </tr>
                               <tr>
-                                <th scope="row">No. Telp</th>
+                                <th scope="row">No. Handphone</th>
                                 <td>:</td>
                                 <td class="w-75"><?= $row["nomor_telepon"] ?></td>
-                              </tr>
-                              <tr>
-                                <th scope="row">Email</th>
-                                <td>:</td>
-                                <td class="w-75"><?= $row["email"] ?></td>
                               </tr>
                             <?php } ?>
                           </tbody>

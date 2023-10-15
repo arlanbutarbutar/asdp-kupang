@@ -25,7 +25,7 @@ if (isset($_SESSION["time-message"])) {
   }
 }
 
-$baseURL = "https://$_SERVER[HTTP_HOST]/";
+$baseURL = "http://$_SERVER[HTTP_HOST]/apps/asdp-kupang/";
 
 $jk = "SELECT * FROM jk";
 $selectJK = mysqli_query($conn, $jk);
@@ -47,15 +47,14 @@ $front_informasi = mysqli_query($conn, $informasi);
 
 if (isset($_POST["daftar-pelayaran"])) {
   if (daftar_pelayaran($conn, $_POST) > 0) {
-    if ($_SESSION['redirect']['akses'] == 0) {
-      $_SESSION["message-success"] = "Akun telah terdaftar, silakan cek email anda untuk memverifikasi akun.";
-      $_SESSION["time-message"] = time();
-      unset($_SESSION['redirect']);
-      header("Location: auth/");
-    } else if ($_SESSION['redirect']['akses'] == 1) {
-      unset($_SESSION['redirect']);
-      header("Location: views/tiket");
-    }
+    unset($_SESSION['redirect']);
+    header("Location: auth/");
+    exit();
+  }
+}
+if (isset($_POST["verifikasi"])) {
+  if (daftar_pelayaran_approve($conn, $_POST) > 0) {
+    header("Location: views/tiket");
     exit();
   }
 }
@@ -65,7 +64,7 @@ if (!isset($_SESSION["data-user"])) {
     if (daftar($conn, $_POST) > 0) {
       $_SESSION["message-success"] = "Akun telah terdaftar, silakan cek email anda untuk memverifikasi akun.";
       $_SESSION["time-message"] = time();
-      header("Location: ./");
+      header("Location: verification");
       exit();
     }
   }
@@ -80,7 +79,7 @@ if (!isset($_SESSION["data-user"])) {
 if (isset($_SESSION["data-user"])) {
   $idUser = valid($conn, $_SESSION["data-user"]["id"]);
   $role = valid($conn, $_SESSION["data-user"]["role"]);
-  $emailUser = valid($conn, $_SESSION["data-user"]["email"]);
+  $nomor_telepon = valid($conn, $_SESSION["data-user"]["nomor_telepon"]);
 
   if ($role <= 2) {
     $profile = mysqli_query($conn, "SELECT * FROM users WHERE id_user='$idUser'");
@@ -102,7 +101,7 @@ if (isset($_SESSION["data-user"])) {
     if (users($_POST, $conn, $action = "insert") > 0) {
       $_SESSION["message-success"] = "Data pengguna berhasil ditambahkan.";
       $_SESSION["time-message"] = time();
-      header("Location: pengelola");
+      header("Location: pengguna");
       exit();
     }
   }
@@ -110,7 +109,7 @@ if (isset($_SESSION["data-user"])) {
     if (users($_POST, $conn, $action = "update") > 0) {
       $_SESSION["message-success"] = "Data pengguna berhasil diubah.";
       $_SESSION["time-message"] = time();
-      header("Location: pengelola");
+      header("Location: pengguna");
       exit();
     }
   }
@@ -118,13 +117,40 @@ if (isset($_SESSION["data-user"])) {
     if (users($_POST, $conn, $action = "delete") > 0) {
       $_SESSION["message-success"] = "Data pengguna berhasil dihapus.";
       $_SESSION["time-message"] = time();
-      header("Location: pengelola");
+      header("Location: pengguna");
       exit();
     }
   }
 
   $penumpang = "SELECT * FROM penumpang JOIN jk ON penumpang.id_jk=jk.id_jk";
   $view_penumpang = mysqli_query($conn, $penumpang);
+
+  $account_bank = "SELECT * FROM account_bank";
+  $view_account_bank = mysqli_query($conn, $account_bank);
+  if (isset($_POST["tambah-account-bank"])) {
+    if (account_bank($conn, $_POST, $action = "insert", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil ditambahkan.";
+      $_SESSION["time-message"] = time();
+      header("Location: account-bank");
+      exit();
+    }
+  }
+  if (isset($_POST["ubah-account-bank"])) {
+    if (account_bank($conn, $_POST, $action = "update", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil diubah.";
+      $_SESSION["time-message"] = time();
+      header("Location: account-bank");
+      exit();
+    }
+  }
+  if (isset($_POST["hapus-account-bank"])) {
+    if (account_bank($conn, $_POST, $action = "delete", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil dihapus.";
+      $_SESSION["time-message"] = time();
+      header("Location: account-bank");
+      exit();
+    }
+  }
 
   $kapal = "SELECT * FROM kapal";
   $view_kapal = mysqli_query($conn, $kapal);
@@ -319,7 +345,7 @@ if (isset($_SESSION["data-user"])) {
       }
     }
 
-    $pembayaran = "SELECT pembayaran.*, tiket.harga, tiket.status_pembayaran, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan, penumpang.nama, jk.jenis_kelamin, penumpang.umur, penumpang.nomor_telepon, penumpang.email FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang JOIN jk ON penumpang.id_jk=jk.id_jk";
+    $pembayaran = "SELECT pembayaran.*, tiket.harga, tiket.status_pembayaran, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan, penumpang.nama, jk.jenis_kelamin, penumpang.umur, penumpang.nomor_telepon FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang JOIN jk ON penumpang.id_jk=jk.id_jk";
     $view_pembayaran = mysqli_query($conn, $pembayaran);
 
     $count_pengelola = "SELECT * FROM users WHERE id_role='2'";
@@ -334,11 +360,11 @@ if (isset($_SESSION["data-user"])) {
     $count_pelayaran = "SELECT * FROM pelayaran";
     $count_pelayaran = mysqli_query($conn, $count_pelayaran);
     $countPelayaran = mysqli_num_rows($count_pelayaran);
-    $count_tiket = "SELECT * FROM tiket WHERE tiket.qr_code IS NOT NULL";
+    $count_tiket = "SELECT * FROM tiket";
     $count_tiket = mysqli_query($conn, $count_tiket);
     $countTiket = mysqli_num_rows($count_tiket);
   } else if ($role == 3) {
-    $tiket = "SELECT tiket.*, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.nama_kapal, kapal.jenis_kapal, rute.cabang, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak FROM tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN jadwal ON pelayaran.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute WHERE tiket.id_penumpang='$idUser'";
+    $tiket = "SELECT tiket.*, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.nama_kapal, kapal.jenis_kapal, rute.cabang, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak FROM tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN jadwal ON pelayaran.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang WHERE penumpang.nomor_telepon='$nomor_telepon'";
     $view_tiket = mysqli_query($conn, $tiket);
     if (isset($_POST["hapus-tiket"])) {
       if (tiket($conn, $_POST, $action = "delete") > 0) {
@@ -349,7 +375,7 @@ if (isset($_SESSION["data-user"])) {
       }
     }
 
-    $pembayaran = "SELECT pembayaran.*, tiket.harga, tiket.status_pembayaran, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran WHERE tiket.id_penumpang='$idUser'";
+    $pembayaran = "SELECT pembayaran.*, tiket.harga, tiket.status_pembayaran, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang WHERE penumpang.nomor_telepon='$nomor_telepon'";
     $view_pembayaran = mysqli_query($conn, $pembayaran);
     if (isset($_POST["tambah-pembayaran"])) {
       if (pembayaran($conn, $_POST, $action = "insert", $baseURL, $idUser) > 0) {
@@ -380,10 +406,10 @@ if (isset($_SESSION["data-user"])) {
              AND tiket.jam_jalan >= CURTIME()";
     $view_overview = mysqli_query($conn, $overview);
 
-    $count_tiket = "SELECT * FROM tiket WHERE tiket.id_penumpang='$idUser'";
+    $count_tiket = "SELECT * FROM tiket JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang WHERE penumpang.nomor_telepon='$nomor_telepon'";
     $count_tiket = mysqli_query($conn, $count_tiket);
     $countTiket = mysqli_num_rows($count_tiket);
-    $count_pembayaran = "SELECT * FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket WHERE tiket.id_penumpang='$idUser'";
+    $count_pembayaran = "SELECT * FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang  WHERE penumpang.nomor_telepon='$nomor_telepon'";
     $count_pembayaran = mysqli_query($conn, $count_pembayaran);
     $countPembayaran = mysqli_num_rows($count_pembayaran);
   }

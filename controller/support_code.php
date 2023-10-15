@@ -52,7 +52,7 @@ function compressImage($source, $destination, $quality)
 function qrcode($id_tiket)
 {
   require_once('../assets/phpqrcode/qrlib.php');
-  $qrvalue = "http://127.0.0.1:1010/apps/asdp-kupang/redirect?tiket=" . $id_tiket;
+  $qrvalue = "https://100154.tugasakhir.my.id/redirect?tiket=" . $id_tiket;
   $tempDir = "../assets/images/qrcode/";
   $codeContents = $qrvalue;
   $fileName = $id_tiket . ".jpg";

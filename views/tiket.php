@@ -52,7 +52,6 @@ $_SESSION["page-url"] = "tiket";
                             <th scope="col" class="text-center">Jenis Kelamin</th>
                             <th scope="col" class="text-center">Umur</th>
                             <th scope="col" class="text-center">No. Telp</th>
-                            <th scope="col" class="text-center">Email</th>
                           <?php } ?>
                           <th scope="col" class="text-center">Nama Kapal</th>
                           <th scope="col" class="text-center">Lintasan</th>
@@ -77,7 +76,6 @@ $_SESSION["page-url"] = "tiket";
                                 <td><?= $row["jenis_kelamin"] ?></td>
                                 <td class="text-center"><?= $row["umur"] ?></td>
                                 <td><?= $row["nomor_telepon"] ?></td>
-                                <td><?= $row["email"] ?></td>
                               <?php } ?>
                               <td><?= $row["nama_kapal"] ?></td>
                               <td><?= $row["pelabuhan_asal"] . " - " . $row["pelabuhan_tujuan"] ?></td>
@@ -102,7 +100,7 @@ $_SESSION["page-url"] = "tiket";
                                           </div>
                                           <?php if ($row['qr_code'] == NULL) { ?>
                                             <div class="modal-body text-center">
-                                              <textarea class="form-control border-0 bg-transparent" style="height: 100px;line-height: 25px;font-size: 16px;" readonly>Tiket anda belum dapat diberikan dikarenakan pembayaran anda saat ini sedang dalam pengecekan petugas, silakan menunggu petugas kami akan mengirimkan notifikasi email status pembayaran.</textarea>
+                                              <textarea class="form-control border-0 bg-transparent" style="height: 100px;line-height: 25px;font-size: 16px;" readonly>Tiket anda belum dapat diberikan dikarenakan pembayaran anda saat ini sedang dalam pengecekan petugas, silakan menunggu petugas kami akan mengirimkan notifikasi melalui whatsapp untuk status pembayaran.</textarea>
                                             </div>
                                           <?php } else { ?>
                                             <div class="modal-body text-center">
@@ -164,12 +162,19 @@ $_SESSION["page-url"] = "tiket";
                                           <?php if ($row['status_pembayaran'] == NULL) { ?>
                                             <form action="" method="POST" enctype="multipart/form-data">
                                               <div class="modal-body text-center">
+                                                <p style="text-align: left;">Kamu sudah mengatur perjalanan yang luar biasa, sekarang saatnya <br>untuk menyelesaikan pembayaran tiket kapal kamu. Ayo, kamu lakukan <br>pembayaran sekarang juga dengan memilih salah satu cara dibawah ini:</p>
+                                                <ul style="margin-left: 10px;">
+                                                  <?php foreach ($view_account_bank as $row_acc) { ?>
+                                                    <li style="text-align: left;"><?= $row_acc['bank'] . ' - ' . $row_acc['norek'] . ' (A/N: ' . $row_acc['an'] . ')' ?></li>
+                                                  <?php } ?>
+                                                </ul>
                                                 <div class="mb-3">
                                                   <label for="avatar" class="form-label">Upload Bukti Bayar <small class="text-danger">*</small></label>
                                                   <input type="file" name="avatar" value="<?php if (isset($_POST['avatar'])) {
                                                                                             echo $_POST['avatar'];
                                                                                           } ?>" class="form-control text-center" id="avatar" placeholder="Upload Bukti Bayar" required>
                                                 </div>
+                                                <small style="text-align: left;">Upload bukti bayar dalam format PNG, JPG, JPEG</small>
                                               </div>
                                               <div class="modal-footer justify-content-center border-top-0">
                                                 <input type="hidden" name="id_tiket" value="<?= $row["id_tiket"] ?>">
@@ -180,7 +185,7 @@ $_SESSION["page-url"] = "tiket";
                                             </form>
                                           <?php } else if ($row['status_pembayaran'] == "Checking") { ?>
                                             <div class="modal-body text-center">
-                                              <textarea class="form-control border-0 bg-transparent" style="height: 150px;line-height: 25px;font-size: 16px;" readonly>Pembayaran anda saat ini sedang dalam pengecekan petugas, silakan menunggu petugas kami akan mengirimkan notifikasi email status pembayaran.</textarea>
+                                              <textarea class="form-control border-0 bg-transparent" style="height: 150px;line-height: 25px;font-size: 16px;" readonly>Pembayaran anda saat ini sedang dalam pengecekan petugas, silakan menunggu petugas kami akan mengirimkan notifikasi whatsapp untuk status pembayaran.</textarea>
                                             </div>
                                           <?php } else if ($row['status_pembayaran'] == "Gagal") { ?>
                                             <div class="modal-body text-center">

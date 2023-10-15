@@ -4,16 +4,6 @@ if (isset($_SESSION["data-user"])) {
   exit();
 }
 
-if (isset($_GET['crypt'])) {
-  $crypt = valid($conn, $_GET['crypt']);
-  $verify = mysqli_query($conn, "SELECT * FROM penumpang WHERE en_user='$crypt'");
-  if (mysqli_num_rows($verify) > 0) {
-    mysqli_query($conn, "UPDATE penumpang SET id_status='1' WHERE en_user='$crypt'");
-    $_SESSION['message-success'] = "Akun anda telah terverifikasi.";
-    $_SESSION['time-message'] = time();
-  }
-}
-
 $_SESSION["page-name"] = "Masuk";
 $_SESSION["page-url"] = "./";
 ?>
@@ -45,8 +35,10 @@ $_SESSION["page-url"] = "./";
               <h6 class="fw-light">Masuk untuk melanjutkan.</h6>
               <form class="pt-3" action="" method="POST">
                 <div class="form-group mt-3">
-                  <label for="email">Email</label>
-                  <input type="email" name="email" id="email" class="form-control text-center" placeholder="Email" required>
+                  <label for="nomor_telepon">No. Handphone</label>
+                  <input type="number" name="nomor_telepon" value="<?php if (isset($_GET['tlpn'])) {
+                                                                      echo $_GET['tlpn'];
+                                                                    } ?>" id="nomor_telepon" class="form-control text-center" placeholder="No. Handphone" required>
                 </div>
                 <div class="form-group">
                   <label for="pasword">Password</label>

@@ -50,7 +50,6 @@ $_SESSION["page-url"] = "pembayaran";
                             <th scope="col" class="text-center">Jenis Kelamin</th>
                             <th scope="col" class="text-center">Umur</th>
                             <th scope="col" class="text-center">No. Telp</th>
-                            <th scope="col" class="text-center">Email</th>
                           <?php } ?>
                           <th scope="col" class="text-center">Penumpang</th>
                           <th scope="col" class="text-center">Golongan</th>
@@ -73,7 +72,6 @@ $_SESSION["page-url"] = "pembayaran";
                                 <td><?= $row["jenis_kelamin"] ?></td>
                                 <td class="text-center"><?= $row["umur"] ?></td>
                                 <td><?= $row["nomor_telepon"] ?></td>
-                                <td><?= $row["email"] ?></td>
                               <?php } ?>
                               <td><?= $row["penumpang"] ?></td>
                               <td><?= $row["golongan"] ?></td>
@@ -120,7 +118,7 @@ $_SESSION["page-url"] = "pembayaran";
                                             </form>
                                           <?php } else if ($row['status_pembayaran'] == "Checking") { ?>
                                             <div class="modal-body text-center">
-                                              <textarea class="form-control border-0 bg-transparent" style="height: 150px;line-height: 25px;font-size: 16px;" readonly>Pembayaran anda saat ini sedang dalam pengecekan petugas, silakan menunggu petugas kami akan mengirimkan notifikasi email status pembayaran.</textarea>
+                                              <textarea class="form-control border-0 bg-transparent" style="height: 150px;line-height: 25px;font-size: 16px;" readonly>Pembayaran anda saat ini sedang dalam pengecekan petugas, silakan menunggu petugas kami akan mengirimkan notifikasi melalui whatsapp untuk status pembayaran.</textarea>
                                             </div>
                                           <?php } else if ($row['status_pembayaran'] == "Diterima") { ?>
                                             <div class="modal-body text-center">
@@ -159,7 +157,7 @@ $_SESSION["page-url"] = "pembayaran";
                                                 </div>
                                                 <div class="modal-footer justify-content-center border-top-0">
                                                   <input type="hidden" name="id_tiket" value="<?= $row["id_tiket"] ?>">
-                                                  <input type="hidden" name="email" value="<?= $row["email"] ?>">
+                                                  <input type="hidden" name="nomor_telepon" value="<?= $row["nomor_telepon"] ?>">
                                                   <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
                                                   <button type="submit" name="ubah-tiket" class="btn btn-success btn-sm rounded-0 border-0" style="height: 30px;">Kirim</button>
                                                 </div>

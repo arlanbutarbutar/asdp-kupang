@@ -179,16 +179,16 @@ $_SESSION["page-url"] = "pelayaran";
                       </div>
                       <form action="" method="post">
                         <div class="modal-body">
-                          <?php if ($_SESSION['redirect']['akses'] == 0) { ?>
+                          <?php $pessanger = valid($conn, $_SESSION["redirect"]["pessanger"]);
+                          for ($pess = 1; $pess <= $pessanger; $pess++) { ?>
+                            <h6>Penumpang <?= $pess ?></h6>
                             <div class="form-group mt-3">
                               <label for="nama">Nama Penumpang <span class="text-danger">*</span></label>
-                              <input type="text" name="nama" value="<?php if (isset($_SESSION['redirect']['nama'])) {
-                                                                      echo $_SESSION['redirect']['nama'];
-                                                                    } ?>" id="nama" class="form-control text-center" placeholder="Nama Penumpang" min="3" required>
+                              <input type="text" name="nama[]" id="nama" class="form-control text-center" placeholder="Nama Penumpang" min="3" required>
                             </div>
                             <div class="form-group">
                               <label for="id_jk">Jenis Kelamin <span class="text-danger">*</span></label>
-                              <select name="id_jk" id="id_jk" class="form-control" aria-label="Default select example" required>
+                              <select name="id_jk[]" id="id_jk" class="form-control" aria-label="Default select example" required>
                                 <option selected value="">Pilih Jenis Kelamin</option>
                                 <?php foreach ($selectJK as $row_jk) { ?>
                                   <option value="<?= $row_jk['id_jk'] ?>"><?= $row_jk['jenis_kelamin'] ?></option>
@@ -197,58 +197,25 @@ $_SESSION["page-url"] = "pelayaran";
                             </div>
                             <div class="form-group">
                               <label for="umur">Umur <span class="text-danger">*</span></label>
-                              <input type="number" name="umur" value="<?php if (isset($_SESSION['redirect']['umur'])) {
-                                                                        echo $_SESSION['redirect']['umur'];
-                                                                      } ?>" id="umur" class="form-control text-center" placeholder="Umur" step="1" min="1" required>
+                              <input type="number" name="umur[]" id="umur" class="form-control text-center" placeholder="Umur" step="1" min="1" required>
                             </div>
                             <div class="form-group">
                               <label for="alamat">Alamat <span class="text-danger">*</span></label>
-                              <input type="text" name="alamat" value="<?php if (isset($_SESSION['redirect']['alamat'])) {
-                                                                        echo $_SESSION['redirect']['alamat'];
-                                                                      } ?>" id="alamat" class="form-control text-center" placeholder="Alamat" required>
-                            </div>
-                            <div class="form-group">
-                              <label for="nomor_telepon">No. Telp <span class="text-danger">*</span></label>
-                              <input type="number" name="nomor_telepon" value="<?php if (isset($_SESSION['redirect']['nomor_telepon'])) {
-                                                                                  echo $_SESSION['redirect']['nomor_telepon'];
-                                                                                } ?>" id="nomor_telepon" class="form-control text-center" placeholder="No. Telp" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4||3}" required>
-                            </div>
-                            <hr>
-                            <p class="text-danger"><span class="badge badge-danger">Perhatian!!</span> Akun anda belum terdaftar, silakan masukan email dan kata sandi yang saat ini anda gunakan.</p>
-                            <div class="form-group">
-                              <label for="email">Email <span class="text-danger">*</span></label>
-                              <input type="email" name="email" value="<?php if (isset($_SESSION['redirect']['email'])) {
-                                                                        echo $_SESSION['redirect']['email'];
-                                                                      } ?>" id="email" class="form-control text-center" placeholder="Email" required>
-                            </div>
-                            <div class="form-group">
-                              <label for="password">Kata Sandi <span class="text-danger">*</span></label>
-                              <input type="password" name="password" id="password" class="form-control text-center" placeholder="Kata Sandi" required>
-                            </div>
-                            <div class="form-group">
-                              <label for="re_password">Ulangi Sandi <span class="text-danger">*</span></label>
-                              <input type="password" name="re_password" id="re_password" class="form-control text-center" placeholder="Ulangi Sandi" required>
-                            </div>
-                          <?php } elseif ($_SESSION['redirect']['akses'] == 1) { ?>
-                            <p class="text-success"><span class="badge badge-success">Success!!</span> Akun anda terdaftar, silakan masukan kata sandi untuk melanjutkan pembayaran.</p>
-                            <div class="form-group">
-                              <label for="email">Email <span class="text-danger">*</span></label>
-                              <input type="email" name="email" value="<?php if (isset($_SESSION['redirect']['email'])) {
-                                                                        echo $_SESSION['redirect']['email'];
-                                                                      } ?>" id="email" class="form-control text-center" placeholder="Email" required>
-                            </div>
-                            <div class="form-group">
-                              <label for="password">Kata Sandi <span class="text-danger">*</span></label>
-                              <input type="password" name="password" id="password" class="form-control text-center" placeholder="Kata Sandi" required>
+                              <input type="text" name="alamat[]" id="alamat" class="form-control text-center" placeholder="Alamat" required>
                             </div>
                           <?php } ?>
+                          <hr>
+                          <p class="text-success">Masukan nomor handphone anda disini untuk melanjutkan pembayaran.</p>
+                          <div class="form-group">
+                            <label for="nomor_telepon">No. HP <span class="text-danger">*</span></label>
+                            <input type="number" name="nomor_telepon" id="nomor_telepon" class="form-control text-center" placeholder="No. HP" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4||3}" required>
+                          </div>
                         </div>
                         <div class="modal-footer border-top-0 justify-content-center">
                           <input type="hidden" name="id_pelayaran" value="<?= $row_pel['id_pelayaran'] ?>">
                           <input type="hidden" name="harga" value="<?= $row_pel['harga'] ?>">
                           <input type="hidden" name="tgl_jalan" value="<?= $row_pel['tanggal_berangkat'] ?>">
                           <input type="hidden" name="jam_jalan" value="<?= $row_pel['jam_berangkat'] ?>">
-                          <input type="hidden" name="akses" value="<?= $_SESSION['redirect']['akses'] ?>">
                           <button type="button" class="btn btn-secondary rounded-0" data-dismiss="modal">Close</button>
                           <button type="submit" name="daftar-pelayaran" class="btn btn-primary rounded-0 text-white">Lanjut</button>
                         </div>

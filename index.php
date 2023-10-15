@@ -4,7 +4,7 @@ $_SESSION["page-url"] = "./";
 ?>
 
 <!DOCTYPE html>
-<html>
+<html style="scroll-behavior: smooth;">
 
 <head>
 
@@ -38,6 +38,7 @@ $_SESSION["page-url"] = "./";
                     <h4>
                       "We Bridge The Nation"
                     </h4>
+                    <a href="#pemesanan" class="btn border-0 shadow mb-5">Pesan Tiket Sekarang</a>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -63,53 +64,9 @@ $_SESSION["page-url"] = "./";
             <h4>
               Pemesanan <span>Tiket</span>
             </h4>
-            <?php if (!isset($_SESSION['data-user'])) { ?>
-              <div class="form-row ">
-                <div class="form-group col-lg-4">
-                  <label for="nama">Nama Penumpang </label>
-                  <input type="text" name="nama" value="<?php if (isset($_SESSION['redirect'])) {
-                                                          echo $_SESSION['redirect']['nama'];
-                                                        } ?>" class="form-control" id="nama" placeholder="Nama Penumpang" required>
-                </div>
-                <div class="form-group col-lg-4">
-                  <label for="id_jk">Jenis Kelamin</label>
-                  <select name="id_jk" class="form-control wide" id="id_jk" required>
-                    <?php foreach ($selectJK as $row_jk) { ?>
-                      <option value="<?= $row_jk['id_jk'] ?>"><?= $row_jk['jenis_kelamin'] ?></option>
-                    <?php } ?>
-                  </select>
-                </div>
-                <div class="form-group col-lg-4">
-                  <label for="umur">Umur</label>
-                  <input type="number" name="umur" value="<?php if (isset($_SESSION['redirect'])) {
-                                                            echo $_SESSION['redirect']['umur'];
-                                                          } ?>" class="form-control" id="umur" placeholder="Umur" required>
-                </div>
-              </div>
-              <div class="form-row ">
-                <div class="form-group col-lg-4">
-                  <label for="alamat">Alamat</label>
-                  <input type="text" name="alamat" value="<?php if (isset($_SESSION['redirect'])) {
-                                                            echo $_SESSION['redirect']['alamat'];
-                                                          } ?>" class="form-control" id="alamat" placeholder="Alamat" required>
-                </div>
-                <div class="form-group col-lg-4">
-                  <label for="nomor_telepon">No. Telp</label>
-                  <input type="number" name="nomor_telepon" value="<?php if (isset($_SESSION['redirect'])) {
-                                                                      echo $_SESSION['redirect']['nomor_telepon'];
-                                                                    } ?>" class="form-control" id="nomor_telepon" placeholder="XXXXXXXXXX" required>
-                </div>
-                <div class="form-group col-lg-4">
-                  <label for="email">Email</label>
-                  <input type="email" name="email" value="<?php if (isset($_SESSION['redirect'])) {
-                                                            echo $_SESSION['redirect']['email'];
-                                                          } ?>" class="form-control" id="email" placeholder="Email" required>
-                </div>
-              </div>
-            <?php } ?>
             <div class="form-row ">
               <div class="form-group col-lg-4">
-                <label for="pelabuhan_asal">Pelabuhan Asal</label>
+                <label for="pelabuhan_asal">Pelabuhan Asal <small class="text-danger">*</small></label>
                 <select name="pelabuhan_asal" id="pelabuhan_asal" class="form-control" aria-label="Default select example" required>
                   <option selected value="">Pilih Pelabuhan Asal</option>
                   <?php foreach ($selectPelabuhanAsal as $row_spa) { ?>
@@ -118,7 +75,7 @@ $_SESSION["page-url"] = "./";
                 </select>
               </div>
               <div class="form-group col-lg-4">
-                <label for="pelabuhan_tujuan">Pelabuhan Tujuan</label>
+                <label for="pelabuhan_tujuan">Pelabuhan Tujuan <small class="text-danger">*</small></label>
                 <select name="pelabuhan_tujuan" id="pelabuhan_tujuan" class="form-control" aria-label="Default select example" required>
                   <option selected value="">Pilih Pelabuhan Tujuan</option>
                   <?php foreach ($selectPelabuhanTujuan as $row_spt) { ?>
@@ -127,7 +84,11 @@ $_SESSION["page-url"] = "./";
                 </select>
               </div>
               <div class="form-group col-lg-4">
-                <button type="submit" name="pelayaran" class="btn w-100" style="margin-top: 32px;">Cek Pelayaran</button>
+                <label for="pelabuhan_tujuan">Penumpang <small class="text-danger">*</small></label>
+                <input type="number" name="pessanger" value="1" class="form-control" min="1" required>
+              </div>
+              <div class="form-group col-lg-3">
+                <button type="submit" name="pelayaran" class="btn w-100 btn-sm" style="margin-top: 32px;">Cek Pelayaran</button>
               </div>
             </div>
           </form>

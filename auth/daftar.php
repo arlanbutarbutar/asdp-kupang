@@ -40,37 +40,10 @@ $_SESSION["page-url"] = "daftar";
                                                         } ?>" id="nama" class="form-control text-center" placeholder="Username" min="3" required>
                 </div>
                 <div class="form-group">
-                  <label for="id_jk">Jenis Kelamin <span class="text-danger">*</span></label>
-                  <select name="id_jk" id="id_jk" class="form-select" aria-label="Default select example" required>
-                    <option selected value="">Pilih Jenis Kelamin</option>
-                    <?php foreach ($selectJK as $row_jk) { ?>
-                      <option value="<?= $row_jk['id_jk'] ?>"><?= $row_jk['jenis_kelamin'] ?></option>
-                    <?php } ?>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="umur">Umur <span class="text-danger">*</span></label>
-                  <input type="number" name="umur" value="<?php if (isset($_POST['umur'])) {
-                                                            echo $_POST['umur'];
-                                                          } ?>" id="umur" class="form-control text-center" placeholder="Umur" step="1" min="1" required>
-                </div>
-                <div class="form-group">
-                  <label for="alamat">Alamat <span class="text-danger">*</span></label>
-                  <input type="text" name="alamat" value="<?php if (isset($_POST['alamat'])) {
-                                                            echo $_POST['alamat'];
-                                                          } ?>" id="alamat" class="form-control text-center" placeholder="Alamat" required>
-                </div>
-                <div class="form-group">
-                  <label for="nomor_telepon">No. Telp <span class="text-danger">*</span></label>
+                  <label for="nomor_telepon">No. Handphone <span class="text-danger">*</span></label>
                   <input type="number" name="nomor_telepon" value="<?php if (isset($_POST['nomor_telepon'])) {
                                                                       echo $_POST['nomor_telepon'];
-                                                                    } ?>" id="nomor_telepon" class="form-control text-center" placeholder="No. Telp" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4||3}" required>
-                </div>
-                <div class="form-group">
-                  <label for="email">Email <span class="text-danger">*</span></label>
-                  <input type="email" name="email" value="<?php if (isset($_POST['email'])) {
-                                                            echo $_POST['email'];
-                                                          } ?>" id="email" class="form-control text-center" placeholder="Email" required>
+                                                                    } ?>" id="nomor_telepon" class="form-control text-center" placeholder="No. Handphone" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4||3}" required>
                 </div>
                 <div class="form-group">
                   <label for="password">Kata Sandi <span class="text-danger">*</span></label>

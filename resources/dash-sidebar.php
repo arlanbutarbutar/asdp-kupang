@@ -9,9 +9,9 @@
     <?php if ($role == 1) { ?>
       <li class="nav-item nav-category" style="color: #08507D;">Kelola Pengguna</li>
       <li class="nav-item">
-        <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='pengelola'">
+        <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='pengguna'">
           <i class="mdi mdi-account-multiple-outline menu-icon" style="color: #0C7DC4;"></i>
-          <span class="menu-title" style="color: #0C7DC4;">Pengelola</span>
+          <span class="menu-title" style="color: #0C7DC4;">Pengguna</span>
         </a>
       </li>
     <?php }
@@ -23,6 +23,14 @@
         </a>
       </li>
       <li class="nav-item nav-category" style="color: #08507D;">Data ASDP</li>
+      <?php if ($role == 1) { ?>
+        <li class="nav-item">
+          <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='account-bank'">
+            <i class="mdi mdi-cash menu-icon" style="color: #0C7DC4;"></i>
+            <span class="menu-title" style="color: #0C7DC4;">Account Bank</span>
+          </a>
+        </li>
+      <?php } ?>
       <li class="nav-item">
         <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='kapal'">
           <i class="mdi mdi-ferry menu-icon" style="color: #0C7DC4;"></i>

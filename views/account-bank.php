@@ -1,7 +1,7 @@
 <?php require_once("../controller/script.php");
 require_once("redirect.php");
-$_SESSION["page-name"] = "Pengelola";
-$_SESSION["page-url"] = "pengelola";
+$_SESSION["page-name"] = "Account Bank";
+$_SESSION["page-url"] = "account-bank";
 ?>
 
 <!DOCTYPE html>
@@ -49,64 +49,65 @@ $_SESSION["page-url"] = "pengelola";
                       <thead>
                         <tr>
                           <th scope="col" class="text-center">#</th>
-                          <th scope="col" class="text-center">Nama</th>
-                          <th scope="col" class="text-center">Email</th>
-                          <th scope="col" class="text-center">Role</th>
-                          <th scope="col" class="text-center">Tgl Buat</th>
-                          <th scope="col" class="text-center">Tgl Ubah</th>
+                          <th scope="col" class="text-center">A/N</th>
+                          <th scope="col" class="text-center">Bank</th>
+                          <th scope="col" class="text-center">Norek</th>
                           <th scope="col" class="text-center">Aksi</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <?php if (mysqli_num_rows($view_users) > 0) {
+                        <?php if (mysqli_num_rows($view_account_bank) > 0) {
                           $no = 1;
-                          while ($row = mysqli_fetch_assoc($view_users)) { ?>
+                          while ($row = mysqli_fetch_assoc($view_account_bank)) { ?>
                             <tr>
                               <th scope="row" class="text-center"><?= $no; ?></th>
-                              <td><?= $row["username"] ?></td>
-                              <td><?= $row["email"] ?></td>
-                              <td><?= $row["role"] ?></td>
-                              <td>
-                                <div class="badge badge-opacity-success">
-                                  <?php $dateCreate = date_create($row["created_at"]);
-                                  echo date_format($dateCreate, "l, d M Y h:i a"); ?>
-                                </div>
-                              </td>
-                              <td>
-                                <div class="badge badge-opacity-warning">
-                                  <?php $dateUpdate = date_create($row["updated_at"]);
-                                  echo date_format($dateUpdate, "l, d M Y h:i a"); ?>
-                                </div>
-                              </td>
+                              <td><?= $row['an'] ?></td>
+                              <td><?= $row['bank'] ?></td>
+                              <td><?= $row['norek'] ?></td>
                               <td class="d-flex justify-content-center">
                                 <div class="col">
-                                  <button type="button" class="btn btn-warning btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#ubah<?= $row["id_user"] ?>">
+                                  <button type="button" class="btn btn-warning btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#ubah<?= $row["id"] ?>">
                                     <i class="bi bi-pencil-square"></i>
                                   </button>
-                                  <div class="modal fade" id="ubah<?= $row["id_user"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal fade" id="ubah<?= $row["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                       <div class="modal-content">
                                         <div class="modal-header border-bottom-0 shadow">
-                                          <h5 class="modal-title" id="exampleModalLabel">Ubah data <?= $row["username"] ?></h5>
+                                          <h5 class="modal-title" id="exampleModalLabel">Ubah <?= $row["bank"] ?></h5>
                                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <form action="" method="POST">
                                           <div class="modal-body text-center">
                                             <div class="mb-3">
-                                              <label for="username" class="form-label">Nama <small class="text-danger">*</small></label>
-                                              <input type="text" name="username" value="<?= $row["username"] ?>" class="form-control text-center" id="username" minlength="3" placeholder="Nama" required>
+                                              <label for="an" class="form-label">Atas Nama (A/N) <small class="text-danger">*</small></label>
+                                              <input type="text" name="an" value="<?php if (isset($_POST['an'])) {
+                                                                                    echo $_POST['an'];
+                                                                                  } else {
+                                                                                    echo $row['an'];
+                                                                                  } ?>" class="form-control text-center" id="an" minlength="3" placeholder="Atas Nama" required>
                                             </div>
                                             <div class="mb-3">
-                                              <label for="email" class="form-label">Email <small class="text-danger">*</small></label>
-                                              <input type="email" name="email" value="<?= $row["email"] ?>" class="form-control text-center" id="email" placeholder="Email" required>
+                                              <label for="bank" class="form-label">Bank <small class="text-danger">*</small></label>
+                                              <input type="text" name="bank" value="<?php if (isset($_POST['bank'])) {
+                                                                                      echo $_POST['bank'];
+                                                                                    } else {
+                                                                                      echo $row['bank'];
+                                                                                    } ?>" class="form-control text-center" id="bank" maxlength="10" placeholder="Bank" required>
+                                            </div>
+                                            <div class="mb-3">
+                                              <label for="norek" class="form-label">Nomor Rekening <small class="text-danger">*</small></label>
+                                              <input type="number" name="norek" value="<?php if (isset($_POST['norek'])) {
+                                                                                          echo $_POST['norek'];
+                                                                                        } else {
+                                                                                          echo $row['norek'];
+                                                                                        } ?>" class="form-control text-center" id="norek" minlength="6" placeholder="Nomor Rekening" required>
                                             </div>
                                           </div>
                                           <div class="modal-footer justify-content-center border-top-0">
-                                            <input type="hidden" name="id-user" value="<?= $row["id_user"] ?>">
-                                            <input type="hidden" name="usernameOld" value="<?= $row["username"] ?>">
-                                            <input type="hidden" name="emailOld" value="<?= $row["email"] ?>">
+                                            <input type="hidden" name="id" value="<?= $row["id"] ?>">
+                                            <input type="hidden" name="bankOld" value="<?= $row["bank"] ?>">
                                             <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
-                                            <button type="submit" name="ubah-user" class="btn btn-warning btn-sm rounded-0 border-0" style="height: 30px;">Ubah</button>
+                                            <button type="submit" name="ubah-account-bank" class="btn btn-warning btn-sm rounded-0 border-0" style="height: 30px;">Ubah</button>
                                           </div>
                                         </form>
                                       </div>
@@ -114,25 +115,24 @@ $_SESSION["page-url"] = "pengelola";
                                   </div>
                                 </div>
                                 <div class="col">
-                                  <button type="button" class="btn btn-danger btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#hapus<?= $row["id_user"] ?>">
+                                  <button type="button" class="btn btn-danger btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#hapus<?= $row["id"] ?>">
                                     <i class="bi bi-trash3"></i>
                                   </button>
-                                  <div class="modal fade" id="hapus<?= $row["id_user"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal fade" id="hapus<?= $row["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                       <div class="modal-content">
                                         <div class="modal-header border-bottom-0 shadow">
-                                          <h5 class="modal-title" id="exampleModalLabel">Hapus data <?= $row["username"] ?></h5>
+                                          <h5 class="modal-title" id="exampleModalLabel">Hapus data <?= $row["bank"] ?></h5>
                                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body text-center">
-                                          Anda yakin ingin menghapus <?= $row["username"] ?> ini?
+                                          Anda yakin ingin menghapus data ini?
                                         </div>
                                         <div class="modal-footer justify-content-center border-top-0">
                                           <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
                                           <form action="" method="POST">
-                                            <input type="hidden" name="id-user" value="<?= $row["id_user"] ?>">
-                                            <input type="hidden" name="username" value="<?= $row["username"] ?>">
-                                            <button type="submit" name="hapus-user" class="btn btn-danger btn-sm rounded-0 text-white border-0" style="height: 30px;">Hapus</button>
+                                            <input type="hidden" name="id" value="<?= $row["id"] ?>">
+                                            <button type="submit" name="hapus-account-bank" class="btn btn-danger btn-sm rounded-0 text-white border-0" style="height: 30px;">Hapus</button>
                                           </form>
                                         </div>
                                       </div>
@@ -157,46 +157,39 @@ $_SESSION["page-url"] = "pengelola";
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header border-bottom-0 shadow">
-                <h5 class="modal-title" id="exampleModalLabel">Tambah Pengguna</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Tambah Account Bank</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <form action="" method="post" name="random_form">
+              <form action="" method="post">
                 <div class="modal-body text-center">
                   <div class="mb-3">
-                    <label for="username" class="form-label">Nama <small class="text-danger">*</small></label>
-                    <input type="text" name="username" class="form-control text-center" id="username" minlength="3" placeholder="Nama" required>
+                    <label for="an" class="form-label">Atas Nama (A/N) <small class="text-danger">*</small></label>
+                    <input type="text" name="an" value="<?php if (isset($_POST['an'])) {
+                                                          echo $_POST['an'];
+                                                        } ?>" class="form-control text-center" id="an" minlength="3" placeholder="Atas Nama" required>
                   </div>
                   <div class="mb-3">
-                    <label for="email" class="form-label">Email <small class="text-danger">*</small></label>
-                    <input type="email" name="email" class="form-control text-center" id="email" placeholder="Email" required>
+                    <label for="bank" class="form-label">Bank <small class="text-danger">*</small></label>
+                    <input type="text" name="bank" value="<?php if (isset($_POST['bank'])) {
+                                                            echo $_POST['bank'];
+                                                          } ?>" class="form-control text-center" id="bank" maxlength="10" placeholder="Bank" required>
                   </div>
                   <div class="mb-3">
-                    <label for="password" class="form-label">Password <small class="text-danger">*</small></label>
-                    <input type="text" name="password" class="form-control text-center" id="kata-sandi" minlength="8" placeholder="Password" required>
-                    <input type="button" value="Generate Password" class="btn btn-link btn-sm text-decoration-none" onclick="random_all();">
+                    <label for="norek" class="form-label">Nomor Rekening <small class="text-danger">*</small></label>
+                    <input type="number" name="norek" value="<?php if (isset($_POST['norek'])) {
+                                                                echo $_POST['norek'];
+                                                              } ?>" class="form-control text-center" id="norek" minlength="6" placeholder="Nomor Rekening" required>
                   </div>
                 </div>
                 <div class="modal-footer border-top-0 justify-content-center">
                   <button type="button" class="btn btn-secondary btn-sm rounded-0" data-bs-dismiss="modal">Batal</button>
-                  <button type="submit" name="tambah-user" class="btn btn-primary btn-sm rounded-0 border-0">Simpan</button>
+                  <button type="submit" name="tambah-account-bank" class="btn btn-primary btn-sm rounded-0 border-0">Simpan</button>
                 </div>
               </form>
             </div>
           </div>
         </div>
         <?php require_once("../resources/dash-footer.php") ?>
-        <script type="text/javascript">
-          function random_all() {
-            var campur = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-            var panjang = 9;
-            var random_all = "";
-            for (var i = 0; i < panjang; i++) {
-              var hasil = Math.floor(Math.random() * campur.length);
-              random_all += campur.substring(hasil, hasil + 1);
-            }
-            document.random_form.password.value = random_all;
-          }
-        </script>
 </body>
 
 </html>

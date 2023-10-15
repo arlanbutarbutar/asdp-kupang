@@ -1,107 +1,138 @@
 <?php require_once("support_code.php");
+function WAAPI($target, $pesan, $token = "P2eS-zGGpJJPjwI8UnC1")
+{
+  $curl = curl_init();
+
+  curl_setopt_array($curl, array(
+    CURLOPT_URL => 'https://api.fonnte.com/send',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_ENCODING => '',
+    CURLOPT_MAXREDIRS => 10,
+    CURLOPT_TIMEOUT => 0,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CUSTOMREQUEST => 'POST',
+    CURLOPT_POSTFIELDS => array(
+      'target' => $target,
+      'message' => $pesan,
+    ),
+    CURLOPT_HTTPHEADER => array(
+      "Authorization: $token"
+    ),
+  ));
+
+  $response = curl_exec($curl);
+
+  curl_close($curl);
+  return $response;
+}
+
 function daftar_pelayaran($conn, $data)
 {
-  $nama = valid($conn, $data['nama']);
-  $id_jk = valid($conn, $data['id_jk']);
-  $umur = valid($conn, $data['umur']);
-  $alamat = valid($conn, $data['alamat']);
+  $checkAccount = mysqli_query($conn, "SELECT * FROM penumpang ORDER BY id_penumpang DESC LIMIT 1");
+  if (mysqli_num_rows($checkAccount) > 0) {
+    $row = mysqli_fetch_assoc($checkAccount);
+    $lastIdPenumpang = $row['id_penumpang'];
+  } else {
+    $lastIdPenumpang = 0;
+  }
+  $nama = $data['nama'];
+  $id_jk = $data['id_jk'];
+  $umur = $data['umur'];
+  $alamat = $data['alamat'];
   $nomor_telepon = valid($conn, $data['nomor_telepon']);
-  $email = valid($conn, $data['email']);
-  $password = valid($conn, $data['password']);
-  $len_password = strlen($password);
-  $re_password = valid($conn, $data['re_password']);
-  $akses = valid($conn, $data['akses']);
   $id_pelayaran = valid($conn, $data['id_pelayaran']);
   $harga = valid($conn, $data['harga']);
   $tgl_jalan = valid($conn, $data['tgl_jalan']);
   $jam_jalan = valid($conn, $data['jam_jalan']);
 
+  $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE nomor_telepon='$nomor_telepon'");
+  if (mysqli_num_rows($checkAccount) > 0) {
+    $row = mysqli_fetch_assoc($checkAccount);
+    $nomor_tlpn = $row['nomor_telepon'];
+    if ($row['id_status'] == 2) {
+      $_SESSION["message-danger"] = "Maaf, akun anda belum diaktivasi. Silakan cek whatsapp anda kembali";
+      $_SESSION["time-message"] = time();
+      return false;
+    } else {
+      $en_user = crc32($nomor_telepon);
+      for ($i = 0; $i < count($nama); $i++) {
+        $id_penumpang = $lastIdPenumpang + 1;
+        mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, en_user, nama, id_jk, umur, alamat, nomor_telepon) VALUES ('$id_penumpang', '$en_user', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]', '$nomor_telepon')");
+        mysqli_query($conn, "INSERT INTO tiket (id_pelayaran, id_penumpang, harga, tgl_jalan, jam_jalan) VALUES ('$id_pelayaran', '$id_penumpang', '$harga', '$tgl_jalan', '$jam_jalan')");
+        $lastIdPenumpang = $id_penumpang;
+      }
+
+      // Send to Whatsapp
+      $target = $nomor_telepon;
+      $pesan = "Terima kasih telah memesan tiket perjalanan dari ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk proses pembayaran: http://127.0.0.1:1010/apps/asdp-kupang/auth/index?tlpn=$nomor_tlpn";
+      WAAPI($target, $pesan);
+
+      return mysqli_affected_rows($conn);
+    }
+  } else {
+    $en_user = crc32($nomor_telepon);
+    for ($i = 0; $i < count($nama); $i++) {
+      $id_penumpang = $lastIdPenumpang + 1;
+      mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, en_user, nama, id_jk, umur, alamat, nomor_telepon) VALUES ('$id_penumpang', '$en_user', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]', '$nomor_telepon')");
+      mysqli_query($conn, "INSERT INTO tiket (id_pelayaran, id_penumpang, harga, tgl_jalan, jam_jalan) VALUES ('$id_pelayaran', '$id_penumpang', '$harga', '$tgl_jalan', '$jam_jalan')");
+      $lastIdPenumpang = $id_penumpang;
+    }
+    mysqli_query($conn, "INSERT INTO users(en_user,username,nomor_telepon) VALUES('$en_user','penumpang_$en_user','$nomor_telepon')");
+
+    // Send to Whatsapp
+    $target = $nomor_telepon;
+    $pesan = "Terima kasih telah memesan tiket perjalanan dari ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk memverifikasi akun: http://127.0.0.1:1010/apps/asdp-kupang/auth/verification?en=$en_user";
+    WAAPI($target, $pesan);
+
+    unset($_SESSION['redirect']);
+    header("Location: auth/verification");
+    exit();
+  }
+}
+function daftar_pelayaran_approve($conn, $data)
+{
+  $nomor_telepon = valid($conn, $data['nomor_telepon']);
+  $password = valid($conn, $data['password']);
+  $len_password = strlen($password);
+  $re_password = valid($conn, $data['re_password']);
+  if ($password != $re_password) {
+    $_SESSION["message-danger"] = "Maaf, kata sandi yang kamu masukan belum sama.";
+    $_SESSION["time-message"] = time();
+    return false;
+  }
   if ($len_password < 8) {
     $_SESSION["message-danger"] = "Maaf, kata sandi yang kamu masukan kurang dari 8 karakter.";
     $_SESSION["time-message"] = time();
     return false;
   }
-  if ($akses == 0) {
-    if ($password != $re_password) {
-      $_SESSION["message-danger"] = "Maaf, kata sandi yang kamu masukan belum sama.";
-      $_SESSION["time-message"] = time();
-      return false;
-    }
-    $checkAccount = mysqli_query($conn, "SELECT * FROM penumpang ORDER BY id_penumpang DESC LIMIT 1");
-    if (mysqli_num_rows($checkAccount) > 0) {
-      $row = mysqli_fetch_assoc($checkAccount);
-      $id_penumpang = $row['id_penumpang'] + 1;
-    } else {
-      $id_penumpang = 1;
-    }
-    $password = password_hash($password, PASSWORD_DEFAULT);
-    $en_user = crc32($email);
-    require("mail.php");
-    $to       = $email;
-    $subject  = 'Verifikasi Akun ASDP kamu sekarang!!';
-    $message  = "<!doctype html>
-        <html>
-          <head>
-            <meta name='viewport' content='width=device-width'>
-            <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-            <title>Verifikasi Akun</title>
-          </head>
-          <body>
-            <img src='https://i.ibb.co/tPKPsRq/logo-asdp.png' style='width: 250px;'>
-            <p>Selamat akun anda sudah terdaftar, tinggal satu langkah lagi anda sudah bisa menggunakan akun anda. Silakan verifikasi sekarang dengan mengklik tautan di bawah ini.</p>
-            <a href='https://100154.tugasakhir.my.id/auth/index?auth=" . $password . "&crypt=" . $en_user . "' target='_blank' style='background-color: #ffffff; border: solid 1px #000; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; border-color: #000; color: #000;'>Verifikasi Sekarang</a>
-          </body>
-        </html>";
-    smtp_mail($to, $subject, $message, '', '', 0, 0, true);
-    $sql = "INSERT INTO penumpang(id_penumpang,en_user,nama,id_jk,umur,alamat,nomor_telepon,email,password) VALUES('$id_penumpang','$en_user','$nama','$id_jk','$umur','$alamat','$nomor_telepon','$email','$password');";
-    $sql .= "INSERT INTO tiket(id_pelayaran,id_penumpang,harga,tgl_jalan,jam_jalan) VALUES('$id_pelayaran','$id_penumpang','$harga','$tgl_jalan','$jam_jalan');";
-    mysqli_multi_query($conn, $sql);
-  } else if ($akses == 1) {
-    $checkAccount = mysqli_query($conn, "SELECT * FROM penumpang WHERE email='$email'");
-    if (mysqli_num_rows($checkAccount) > 0) {
-      $row = mysqli_fetch_assoc($checkAccount);
-      $id_penumpang = $row['id_penumpang'];
-      if ($row['id_status'] == 2) {
-        $_SESSION["message-danger"] = "Maaf, akun anda belum diaktivasi. Silakan cek email anda kembali";
-        $_SESSION["time-message"] = time();
-        return false;
-      } else {
-        if (password_verify($password, $row["password"])) {
-          $sql = "INSERT INTO tiket(id_pelayaran,id_penumpang,harga,tgl_jalan,jam_jalan) VALUES('$id_pelayaran','$id_penumpang','$harga','$tgl_jalan','$jam_jalan')";
-          mysqli_query($conn, $sql);
-          $_SESSION["data-user"] = [
-            "id" => $row["id_penumpang"],
-            "role" => $row["id_role"],
-            "email" => $row["email"],
-            "username" => $row["nama"],
-          ];
-        } else {
-          $_SESSION["message-danger"] = "Maaf, kata sandi yang anda masukan salah.";
-          $_SESSION["time-message"] = time();
-          return false;
-        }
-      }
-    }
+  $password = password_hash($password, PASSWORD_DEFAULT);
+  $sql = "UPDATE users SET password='$password' WHERE nomor_telepon='$nomor_telepon'";
+  mysqli_query($conn, $sql);
+  $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE nomor_telepon='$nomor_telepon'");
+  if (mysqli_num_rows($checkAccount) > 0) {
+    $row = mysqli_fetch_assoc($checkAccount);
+    $_SESSION["data-user"] = [
+      "id" => $row["id_user"],
+      "role" => $row["id_role"],
+      "username" => $row["username"],
+      "nomor_telepon" => $row["nomor_telepon"],
+    ];
   }
-
   return mysqli_affected_rows($conn);
 }
 if (!isset($_SESSION["data-user"])) {
   function daftar($conn, $data)
   {
     $nama = valid($conn, $data["nama"]);
-    $id_jk = valid($conn, $data["id_jk"]);
-    $umur = valid($conn, $data["umur"]);
-    $alamat = valid($conn, $data["alamat"]);
     $nomor_telepon = valid($conn, $data["nomor_telepon"]);
-    $email = valid($conn, $data["email"]);
     $password = valid($conn, $data["password"]);
     $re_password = valid($conn, $data["re_password"]);
     $len_password = strlen($password);
 
-    $checkAccount = mysqli_query($conn, "SELECT * FROM penumpang WHERE email='$email'");
+    $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE nomor_telepon='$nomor_telepon'");
     if (mysqli_num_rows($checkAccount) > 0) {
-      $_SESSION["message-danger"] = "Maaf, email yang anda masukan sudah terdaftar.";
+      $_SESSION["message-danger"] = "Maaf, No. HP yang anda masukan sudah terdaftar.";
       $_SESSION["time-message"] = time();
       return false;
     }
@@ -117,44 +148,33 @@ if (!isset($_SESSION["data-user"])) {
     }
 
     $password = password_hash($password, PASSWORD_DEFAULT);
-    $en_user = crc32($email);
-    require("mail.php");
-    $to       = $email;
-    $subject  = 'Verifikasi Akun ASDP kamu sekarang!!';
-    $message  = "<!doctype html>
-      <html>
-        <head>
-          <meta name='viewport' content='width=device-width'>
-          <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-          <title>Verifikasi Akun</title>
-        </head>
-        <body>
-          <img src='https://i.ibb.co/tPKPsRq/logo-asdp.png' style='width: 250px;'>
-          <p>Selamat akun anda sudah terdaftar, tinggal satu langkah lagi anda sudah bisa menggunakan akun anda. Silakan verifikasi sekarang dengan mengklik tautan di bawah ini.</p>
-          <a href='https://100154.tugasakhir.my.id/auth/index?auth=" . $password . "&crypt=" . $en_user . "' target='_blank' style='background-color: #ffffff; border: solid 1px #000; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; border-color: #000; color: #000;'>Verifikasi Sekarang</a>
-        </body>
-      </html>";
-    smtp_mail($to, $subject, $message, '', '', 0, 0, true);
+    $en_user = crc32($nomor_telepon);
 
-    $sql = "INSERT INTO penumpang(en_user,nama,id_jk,umur,alamat,nomor_telepon,email,password) VALUES('$en_user','$nama','$id_jk','$umur','$alamat','$nomor_telepon','$email','$password')";
+    $sql = "INSERT INTO users(en_user,username,nomor_telepon,password) VALUES('$en_user','$nama','$nomor_telepon','$password')";
     mysqli_query($conn, $sql);
+
+    // Send to Whatsapp
+    $target = $nomor_telepon;
+    $pesan = "Akun anda telah terdaftar di sistem ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk memverifikasi akun: http://127.0.0.1:1010/apps/asdp-kupang/auth/verification?en=$en_user";
+    WAAPI($target, $pesan);
+
     return mysqli_affected_rows($conn);
   }
   function masuk($conn, $data)
   {
-    $email = valid($conn, $data["email"]);
+    $nomor_telepon = valid($conn, $data["nomor_telepon"]);
     $password = valid($conn, $data["password"]);
 
     // check account
-    $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
+    $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE nomor_telepon='$nomor_telepon'");
     if (mysqli_num_rows($checkAccount) > 0) {
       $row = mysqli_fetch_assoc($checkAccount);
       if (password_verify($password, $row["password"])) {
         $_SESSION["data-user"] = [
           "id" => $row["id_user"],
           "role" => $row["id_role"],
-          "email" => $row["email"],
           "username" => $row["username"],
+          "nomor_telepon" => $row["nomor_telepon"],
         ];
       } else {
         $_SESSION["message-danger"] = "Maaf, kata sandi yang anda masukan salah.";
@@ -162,32 +182,9 @@ if (!isset($_SESSION["data-user"])) {
         return false;
       }
     } else if (mysqli_num_rows($checkAccount) == 0) {
-      $checkAccount = mysqli_query($conn, "SELECT * FROM penumpang WHERE email='$email'");
-      if (mysqli_num_rows($checkAccount) > 0) {
-        $row = mysqli_fetch_assoc($checkAccount);
-        if ($row['id_status'] == 2) {
-          $_SESSION["message-danger"] = "Maaf, akun anda belum diaktivasi. Silakan cek email anda kembali";
-          $_SESSION["time-message"] = time();
-          return false;
-        } else {
-          if (password_verify($password, $row["password"])) {
-            $_SESSION["data-user"] = [
-              "id" => $row["id_penumpang"],
-              "role" => $row["id_role"],
-              "email" => $row["email"],
-              "username" => $row["nama"],
-            ];
-          } else {
-            $_SESSION["message-danger"] = "Maaf, kata sandi yang anda masukan salah.";
-            $_SESSION["time-message"] = time();
-            return false;
-          }
-        }
-      } else if (mysqli_num_rows($checkAccount) == 0) {
-        $_SESSION["message-danger"] = "Maaf, akun yang anda masukan belum terdaftar.";
-        $_SESSION["time-message"] = time();
-        return false;
-      }
+      $_SESSION["message-danger"] = "Maaf, akun yang anda masukan belum terdaftar.";
+      $_SESSION["time-message"] = time();
+      return false;
     }
   }
 }
@@ -223,33 +220,33 @@ if (isset($_SESSION["data-user"])) {
   function users($data, $conn, $action)
   {
     $username = valid($conn, $data["username"]);
-    $email = valid($conn, $data["email"]);
+    $nomor_telepon = valid($conn, $data["nomor_telepon"]);
     $password = valid($conn, $data["password"]);
     $password = password_hash($password, PASSWORD_DEFAULT);
 
     if ($action == "insert") {
-      $checkEmail = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
-      if (mysqli_num_rows($checkEmail) > 0) {
-        $_SESSION["message-danger"] = "Maaf, email yang anda masukan sudah terdaftar.";
+      $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE nomor_telepon='$nomor_telepon'");
+      if (mysqli_num_rows($checkAccount) > 0) {
+        $_SESSION["message-danger"] = "Maaf, no. handphone yang anda masukan sudah terdaftar.";
         $_SESSION["time-message"] = time();
         return false;
       }
-      $sql = "INSERT INTO users(username,email,password) VALUES('$username','$email','$password')";
+      $sql = "INSERT INTO users(id_role,username,nomor_telepon,password) VALUES('1','$username','$nomor_telepon','$password')";
       mysqli_query($conn, $sql);
     }
 
     if ($action == "update") {
       $id_user = valid($conn, $data["id-user"]);
-      $emailOld = valid($conn, $data["emailOld"]);
-      if ($email != $emailOld) {
-        $checkEmail = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
-        if (mysqli_num_rows($checkEmail) > 0) {
-          $_SESSION["message-danger"] = "Maaf, email yang anda masukan sudah terdaftar.";
+      $nomor_teleponOld = valid($conn, $data["nomor_teleponOld"]);
+      if ($nomor_telepon != $nomor_teleponOld) {
+        $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE nomor_telepon='$nomor_telepon'");
+        if (mysqli_num_rows($checkAccount) > 0) {
+          $_SESSION["message-danger"] = "Maaf, no. handphone yang anda masukan sudah terdaftar.";
           $_SESSION["time-message"] = time();
           return false;
         }
       }
-      $sql = "UPDATE users SET username='$username', email='$email', updated_at=current_timestamp WHERE id_user='$id_user'";
+      $sql = "UPDATE users SET username='$username', nomor_telepon='$nomor_telepon', updated_at=current_timestamp WHERE id_user='$id_user'";
       mysqli_query($conn, $sql);
     }
 
@@ -259,6 +256,48 @@ if (isset($_SESSION["data-user"])) {
       mysqli_query($conn, $sql);
     }
 
+    return mysqli_affected_rows($conn);
+  }
+  function account_bank($conn, $data, $action)
+  {
+    $an = valid($conn, $data['an']);
+    $bank = valid($conn, $data['bank']);
+    $norek = valid($conn, $data['norek']);
+
+    if ($action == "insert") {
+      $account_bank = "SELECT * FROM account_bank WHERE bank='$bank'";
+      $check_account_bank = mysqli_query($conn, $account_bank);
+      if (mysqli_num_rows($check_account_bank) > 0) {
+        $_SESSION["message-danger"] = "Maaf, bank yang anda masukan sudah ada.";
+        $_SESSION["time-message"] = time();
+        return false;
+      } else {
+        $sql = "INSERT INTO account_bank(an,bank,norek) VALUES('$an','$bank','$norek')";
+      }
+    }
+
+    if ($action == "update") {
+      $id = valid($conn, $data['id']);
+      $bankOld = valid($conn, $data['bankOld']);
+      if ($bank != $bankOld) {
+        $account_bank = "SELECT * FROM account_bank WHERE bank='$bank'";
+        $check_account_bank = mysqli_query($conn, $account_bank);
+        if (mysqli_num_rows($check_account_bank) > 0) {
+          $_SESSION["message-danger"] = "Maaf, bank yang anda masukan sudah ada.";
+          $_SESSION["time-message"] = time();
+          return false;
+        } else {
+          $sql = "UPDATE account_bank SET an='$an', bank='$bank', norek='$norek' WHERE id='$id'";
+        }
+      }
+    }
+
+    if ($action == "delete") {
+      $id = valid($conn, $data['id']);
+      $sql = "DELETE FROM account_bank WHERE id='$id'";
+    }
+
+    mysqli_query($conn, $sql);
     return mysqli_affected_rows($conn);
   }
   function kapal($conn, $data, $action, $baseURL)
@@ -573,30 +612,19 @@ if (isset($_SESSION["data-user"])) {
 
     if ($action == "update") {
       $id_tiket = valid($conn, $data['id_tiket']);
-      $email = valid($conn, $data['email']);
+      $nomor_telepon = valid($conn, $data['nomor_telepon']);
       if ($status_pembayaran == "Gagal") {
         $pesan_status = "Maaf pembayaran gagal diterima, silakan masukan bukti pembayaran yang semestinya sesuai tiket anda!";
       } else if ($status_pembayaran == "Diterima") {
         $pesan_status = "Selamat pembayaran berhasil, bukti pembayaran anda berhasil diterima dengan baik oleh petugas kami. Silakan masuk ke akun kamu dan tunjukan tiket saat ingin memasuki kapal.";
         $qr_code = qrcode($id_tiket);
       }
-      require("mail.php");
-      $to       = $email;
-      $subject  = 'Pembayaran Kamu ' . $status_pembayaran . '!!';
-      $message  = "<!doctype html>
-      <html>
-        <head>
-          <meta name='viewport' content='width=device-width'>
-          <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-          <title>Status Pembayaran</title>
-        </head>
-        <body>
-          <img src='https://i.ibb.co/tPKPsRq/logo-asdp.png' style='width: 250px;'>
-          <p>" . $pesan_status . "</p>
-          <a href='https://100154.tugasakhir.my.id/views/tiket' target='_blank' style='background-color: #ffffff; border: solid 1px #000; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; border-color: #000; color: #000;'>Lihat Tiket</a>
-        </body>
-      </html>";
-      smtp_mail($to, $subject, $message, '', '', 0, 0, true);
+
+      // Send to Whatsapp
+      $target = $nomor_telepon;
+      $pesan = "Pembayaran kamu *" . $status_pembayaran . "*. Silakan lihat tiket kamu disini👉 http://127.0.0.1:1010/apps/asdp-kupang/views/tiket";
+      WAAPI($target, $pesan);
+
       if ($status_pembayaran == "Gagal") {
         $sql = "UPDATE tiket SET status_pembayaran='$status_pembayaran' WHERE id_tiket='$id_tiket'";
       } else if ($status_pembayaran == "Diterima") {

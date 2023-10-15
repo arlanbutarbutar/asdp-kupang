@@ -27,7 +27,7 @@
           <div class="card card-custom rounded-0 border-0 shadow mt-3">
             <div class="card-body">
               <h3>Pengguna</h3>
-              <h4 class="mt-3 mb-1" onclick="window.location.href='pengelola'"><i class="mdi mdi-account-multiple-outline" style="font-size: 20px;"></i> Pengelola <?= $countPengelola ?></h4>
+              <h4 class="mt-3 mb-1" onclick="window.location.href='pengguna'"><i class="mdi mdi-account-multiple-outline" style="font-size: 20px;"></i> Pengguna <?= $countPengelola ?></h4>
               <h4 class="mt-3 mb-1" onclick="window.location.href='penumpang'"><i class="mdi mdi-account-multiple-outline" style="font-size: 20px;"></i> Penumpang <?= $countPenumpang ?></h4>
             </div>
           </div>
