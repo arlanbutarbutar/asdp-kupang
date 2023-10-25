@@ -66,10 +66,10 @@ $_SESSION["page-url"] = "account-bank";
                               <td><?= $row['norek'] ?></td>
                               <td class="d-flex justify-content-center">
                                 <div class="col">
-                                  <button type="button" class="btn btn-warning btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#ubah<?= $row["id"] ?>">
+                                  <button type="button" class="btn btn-warning btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#ubah<?= $row["id_bank"] ?>">
                                     <i class="bi bi-pencil-square"></i>
                                   </button>
-                                  <div class="modal fade" id="ubah<?= $row["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal fade" id="ubah<?= $row["id_bank"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                       <div class="modal-content">
                                         <div class="modal-header border-bottom-0 shadow">
@@ -104,7 +104,7 @@ $_SESSION["page-url"] = "account-bank";
                                             </div>
                                           </div>
                                           <div class="modal-footer justify-content-center border-top-0">
-                                            <input type="hidden" name="id" value="<?= $row["id"] ?>">
+                                            <input type="hidden" name="id" value="<?= $row["id_bank"] ?>">
                                             <input type="hidden" name="bankOld" value="<?= $row["bank"] ?>">
                                             <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
                                             <button type="submit" name="ubah-account-bank" class="btn btn-warning btn-sm rounded-0 border-0" style="height: 30px;">Ubah</button>
@@ -115,10 +115,10 @@ $_SESSION["page-url"] = "account-bank";
                                   </div>
                                 </div>
                                 <div class="col">
-                                  <button type="button" class="btn btn-danger btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#hapus<?= $row["id"] ?>">
+                                  <button type="button" class="btn btn-danger btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#hapus<?= $row["id_bank"] ?>">
                                     <i class="bi bi-trash3"></i>
                                   </button>
-                                  <div class="modal fade" id="hapus<?= $row["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal fade" id="hapus<?= $row["id_bank"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                       <div class="modal-content">
                                         <div class="modal-header border-bottom-0 shadow">
@@ -131,7 +131,7 @@ $_SESSION["page-url"] = "account-bank";
                                         <div class="modal-footer justify-content-center border-top-0">
                                           <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
                                           <form action="" method="POST">
-                                            <input type="hidden" name="id" value="<?= $row["id"] ?>">
+                                            <input type="hidden" name="id" value="<?= $row["id_bank"] ?>">
                                             <button type="submit" name="hapus-account-bank" class="btn btn-danger btn-sm rounded-0 text-white border-0" style="height: 30px;">Hapus</button>
                                           </form>
                                         </div>

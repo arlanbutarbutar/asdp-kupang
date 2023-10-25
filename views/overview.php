@@ -41,10 +41,10 @@
           </div>
         </div>
         <div class="col-lg-3">
-          <div class="card card-custom rounded-0 border-0 shadow mt-3" onclick="window.location.href='pelayaran'">
+          <div class="card card-custom rounded-0 border-0 shadow mt-3" onclick="window.location.href='pemesanan'">
             <div class="card-body">
-              <h3>Pelayaran</h3>
-              <h1 class="mt-3 mb-3"><i class="mdi mdi-ferry" style="font-size: 35px;"></i> <?= $countPelayaran ?></h1>
+              <h3>Pemesanan</h3>
+              <h1 class="mt-3 mb-3"><i class="mdi mdi-ferry" style="font-size: 35px;"></i> <?= $countPemesanan ?></h1>
             </div>
           </div>
         </div>
@@ -170,7 +170,7 @@
               $data = getDataFromDB();
               ?>
 
-              <script>
+              <!-- <script>
                 // Data jumlah penumpang dari PHP
                 var data = <?php echo json_encode(array_column($data, 'jumlah_penumpang')); ?>;
                 // Nama kapal dari PHP
@@ -210,7 +210,7 @@
                   }
                   return colors;
                 }
-              </script>
+              </script> -->
             </div>
           </div>
         </div>
@@ -233,10 +233,10 @@ if ($role == 3) { ?>
                   <h1 class="card-title"><?= $row_overview['nama_kapal'] ?></h1>
                   <div class="row">
                     <div class="col-lg-6">
-                      <p class="card-text">Jenis Kapal: <strong><?= $row_overview['jenis_kapal'] ?></strong></p>
-                      <p class="card-text">Penumpang: <strong><?= $row_overview['penumpang'] ?></strong></p>
-                      <p class="card-text">Golongan: <strong><?= $row_overview['golongan'] ?></strong></p>
-                      <p class="card-text">Kendaraan: <strong><?= $row_overview['kendaraan'] ?></strong></p>
+                      <p class="card-text">Kapal: <strong><?= $row_overview['nama_kapal'] . " " . $row_overview['jenis_kapal'] ?></strong></p>
+                      <p class="card-text">Penumpang: <strong><?= $row_overview['nama'] ?></strong></p>
+                      <p class="card-text">Kelas: <strong><?= $row_overview['nama_kelas'] ?></strong></p>
+                      <p class="card-text">Golongan: <strong><?= $row_overview['nama_golongan'] ?></strong></p>
                     </div>
                     <div class="col-lg-6">
                       <p class="card-text">Cabang: <strong><?= $row_overview['cabang'] ?></strong></p>
@@ -247,8 +247,8 @@ if ($role == 3) { ?>
                   <hr>
                   <div class="row">
                     <div class="col-lg-12">
-                      <p class="card-text mb-3">Tgl berangkat <strong><?php $tgl_berangkat = date_create($row_overview["tgl_jalan"]);
-                                                                      echo date_format($tgl_berangkat, "d M Y") . " - " . $row_overview['jam_jalan']; ?></strong></p>
+                      <p class="card-text mb-3">Tgl berangkat <strong><?php $tgl_berangkat = date_create($row_overview["tanggal_berangkat"]);
+                                                                      echo date_format($tgl_berangkat, "d M Y") . " - " . $row_overview['jam_berangkat']; ?></strong></p>
                       <span class="badge bg-warning text-dark rounded-1 font-weight-bold">Perhatian!!</span>
                       <textarea class="form-control border-0 rounded-0 p-0 bg-transparent mt-2" style="height: 100px;line-height: 20px;" readonly>Mohon perhatikan tanggal keberangkatan dan tunjukan QR Code kepada petugas untuk bisa masuk ke kapal.</textarea>
                     </div>

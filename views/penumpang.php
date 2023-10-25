@@ -48,7 +48,6 @@ $_SESSION["page-url"] = "penumpang";
                           <th scope="col" class="text-center">Jenis Kelamin</th>
                           <th scope="col" class="text-center">Umur</th>
                           <th scope="col" class="text-center">Alamat</th>
-                          <th scope="col" class="text-center">No. Telp</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -61,7 +60,6 @@ $_SESSION["page-url"] = "penumpang";
                               <td><?= $row["jenis_kelamin"] ?></td>
                               <td class="text-center"><?= $row["umur"] ?></td>
                               <td><?= $row["alamat"] ?></td>
-                              <td><?= $row["nomor_telepon"] ?></td>
                             </tr>
                         <?php $no++;
                           }

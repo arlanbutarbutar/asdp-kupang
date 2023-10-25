@@ -29,6 +29,10 @@ $baseURL = "http://$_SERVER[HTTP_HOST]/apps/asdp-kupang/";
 
 $jk = "SELECT * FROM jk";
 $selectJK = mysqli_query($conn, $jk);
+$gol = "SELECT * FROM golongan";
+$selectGol = mysqli_query($conn, $gol);
+$kel = "SELECT * FROM kelas";
+$selectKel = mysqli_query($conn, $kel);
 $pelabuhan = "SELECT * FROM pelabuhan";
 $selectPelabuhanAsal = mysqli_query($conn, $pelabuhan);
 $selectPelabuhanTujuan = mysqli_query($conn, $pelabuhan);
@@ -38,7 +42,7 @@ $front_lintasan = mysqli_query($conn, $lintasan);
 $kapal = "SELECT * FROM kapal";
 $front_kapal = mysqli_query($conn, $kapal);
 $front_pelabuhan = mysqli_query($conn, $pelabuhan);
-$jadwal = "SELECT * FROM jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute";
+$jadwal = "SELECT * FROM jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute ORDER BY jadwal.tanggal_berangkat ASC";
 $front_jadwal = mysqli_query($conn, $jadwal);
 $galeri = "SELECT * FROM galeri";
 $front_galeri = mysqli_query($conn, $galeri);
@@ -152,6 +156,60 @@ if (isset($_SESSION["data-user"])) {
     }
   }
 
+  $kelas = "SELECT * FROM kelas";
+  $view_kelas = mysqli_query($conn, $kelas);
+  if (isset($_POST["tambah-kelas"])) {
+    if (kelas($conn, $_POST, $action = "insert", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil ditambahkan.";
+      $_SESSION["time-message"] = time();
+      header("Location: kelas");
+      exit();
+    }
+  }
+  if (isset($_POST["ubah-kelas"])) {
+    if (kelas($conn, $_POST, $action = "update", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil diubah.";
+      $_SESSION["time-message"] = time();
+      header("Location: kelas");
+      exit();
+    }
+  }
+  if (isset($_POST["hapus-kelas"])) {
+    if (kelas($conn, $_POST, $action = "delete", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil dihapus.";
+      $_SESSION["time-message"] = time();
+      header("Location: kelas");
+      exit();
+    }
+  }
+
+  $golongan = "SELECT * FROM golongan";
+  $view_golongan = mysqli_query($conn, $golongan);
+  if (isset($_POST["tambah-golongan"])) {
+    if (golongan($conn, $_POST, $action = "insert", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil ditambahkan.";
+      $_SESSION["time-message"] = time();
+      header("Location: golongan");
+      exit();
+    }
+  }
+  if (isset($_POST["ubah-golongan"])) {
+    if (golongan($conn, $_POST, $action = "update", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil diubah.";
+      $_SESSION["time-message"] = time();
+      header("Location: golongan");
+      exit();
+    }
+  }
+  if (isset($_POST["hapus-golongan"])) {
+    if (golongan($conn, $_POST, $action = "delete", $baseURL) > 0) {
+      $_SESSION["message-success"] = "Data account bank berhasil dihapus.";
+      $_SESSION["time-message"] = time();
+      header("Location: golongan");
+      exit();
+    }
+  }
+
   $kapal = "SELECT * FROM kapal";
   $view_kapal = mysqli_query($conn, $kapal);
   if (isset($_POST["tambah-kapal"])) {
@@ -260,33 +318,6 @@ if (isset($_SESSION["data-user"])) {
     }
   }
 
-  $pelayaran = "SELECT pelayaran.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.nama_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan FROM pelayaran JOIN jadwal ON pelayaran.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute";
-  $view_pelayaran = mysqli_query($conn, $pelayaran);
-  if (isset($_POST["tambah-pelayaran"])) {
-    if (pelayaran($conn, $_POST, $action = "insert") > 0) {
-      $_SESSION["message-success"] = "Data pelayaran berhasil ditambahkan.";
-      $_SESSION["time-message"] = time();
-      header("Location: pelayaran");
-      exit();
-    }
-  }
-  if (isset($_POST["ubah-pelayaran"])) {
-    if (pelayaran($conn, $_POST, $action = "update") > 0) {
-      $_SESSION["message-success"] = "Data pelayaran berhasil diubah.";
-      $_SESSION["time-message"] = time();
-      header("Location: pelayaran");
-      exit();
-    }
-  }
-  if (isset($_POST["hapus-pelayaran"])) {
-    if (pelayaran($conn, $_POST, $action = "delete") > 0) {
-      $_SESSION["message-success"] = "Data pelayaran berhasil dihapus.";
-      $_SESSION["time-message"] = time();
-      header("Location: pelayaran");
-      exit();
-    }
-  }
-
   $informasi = "SELECT * FROM informasi";
   $view_informasi = mysqli_query($conn, $informasi);
   if (isset($_POST["tambah-informasi"])) {
@@ -334,19 +365,31 @@ if (isset($_SESSION["data-user"])) {
   }
 
   if ($role <= 2) {
-    $tiket = "SELECT * FROM tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN jadwal ON pelayaran.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang JOIN jk ON penumpang.id_jk=jk.id_jk";
+    $pemesanan = "SELECT pemesanan.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.img_kapal, kapal.nama_kapal, kapal.kapasitas, kapal.jenis_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak, penumpang.nama, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, jk.jenis_kelamin, golongan.nama_golongan, golongan.harga_golongan FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN jk ON penumpang.id_jk=jk.id_jk";
+    $view_pemesanan = mysqli_query($conn, $pemesanan);
+
+    $tiket = "SELECT tiket.*, penumpang.nama, penumpang.umur, penumpang.alamat, jk.jenis_kelamin, kelas.nama_kelas, golongan.nama_golongan, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.nama_kapal, kapal.jenis_kapal, rute.cabang, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak 
+    FROM tiket 
+    JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang 
+    JOIN kelas ON penumpang.id_kelas=kelas.id_kelas
+    JOIN jk ON penumpang.id_jk=jk.id_jk
+    JOIN pemesanan ON penumpang.id_penumpang=pemesanan.id_penumpang 
+    JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan
+    JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal 
+    JOIN kapal ON jadwal.id_kapal=kapal.id_kapal 
+    JOIN rute ON jadwal.id_rute=rute.id_rute";
     $view_tiket = mysqli_query($conn, $tiket);
-    if (isset($_POST["ubah-tiket"])) {
-      if (tiket($conn, $_POST, $action = "update") > 0) {
+
+    $pembayaran = "SELECT pembayaran.*, penumpang.nama, golongan.nama_golongan, jk.jenis_kelamin, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, pemesanan.no_pemesanan, account_bank.an, account_bank.bank, account_bank.norek, jadwal.id_jadwal FROM pembayaran JOIN pemesanan ON pembayaran.no_pemesanan=pemesanan.no_pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN jk ON penumpang.id_jk=jk.id_jk JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN account_bank ON pembayaran.id_bank=account_bank.id_bank GROUP BY pemesanan.no_pemesanan";
+    $view_pembayaran = mysqli_query($conn, $pembayaran);
+    if (isset($_POST["ubah-pembayaran"])) {
+      if (pembayaran_checking($conn, $_POST, $action = "update", $nomor_telepon) > 0) {
         $_SESSION["message-success"] = "Data status pembayaran berhasil diubah.";
         $_SESSION["time-message"] = time();
         header("Location: pembayaran");
         exit();
       }
     }
-
-    $pembayaran = "SELECT pembayaran.*, tiket.harga, tiket.status_pembayaran, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan, penumpang.nama, jk.jenis_kelamin, penumpang.umur, penumpang.nomor_telepon FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang JOIN jk ON penumpang.id_jk=jk.id_jk";
-    $view_pembayaran = mysqli_query($conn, $pembayaran);
 
     $count_pengelola = "SELECT * FROM users WHERE id_role='2'";
     $count_pengelola = mysqli_query($conn, $count_pengelola);
@@ -357,25 +400,30 @@ if (isset($_SESSION["data-user"])) {
     $count_kapal = "SELECT * FROM kapal";
     $count_kapal = mysqli_query($conn, $count_kapal);
     $countKapal = mysqli_num_rows($count_kapal);
-    $count_pelayaran = "SELECT * FROM pelayaran";
-    $count_pelayaran = mysqli_query($conn, $count_pelayaran);
-    $countPelayaran = mysqli_num_rows($count_pelayaran);
+    $count_pemesanan = "SELECT * FROM pemesanan";
+    $count_pemesanan = mysqli_query($conn, $count_pemesanan);
+    $countPemesanan = mysqli_num_rows($count_pemesanan);
     $count_tiket = "SELECT * FROM tiket";
     $count_tiket = mysqli_query($conn, $count_tiket);
     $countTiket = mysqli_num_rows($count_tiket);
   } else if ($role == 3) {
-    $tiket = "SELECT tiket.*, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.nama_kapal, kapal.jenis_kapal, rute.cabang, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak FROM tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN jadwal ON pelayaran.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang WHERE penumpang.nomor_telepon='$nomor_telepon'";
-    $view_tiket = mysqli_query($conn, $tiket);
-    if (isset($_POST["hapus-tiket"])) {
-      if (tiket($conn, $_POST, $action = "delete") > 0) {
-        $_SESSION["message-success"] = "Data tiket berhasil dibatalkan.";
-        $_SESSION["time-message"] = time();
-        header("Location: tiket");
-        exit();
-      }
-    }
+    $pemesanan = "SELECT pemesanan.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.img_kapal, kapal.nama_kapal, kapal.kapasitas, kapal.jenis_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak, penumpang.nama, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, jk.jenis_kelamin, golongan.nama_golongan, golongan.harga_golongan FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN jk ON penumpang.id_jk=jk.id_jk WHERE pemesanan.id_user='$idUser'";
+    $view_pemesanan = mysqli_query($conn, $pemesanan);
 
-    $pembayaran = "SELECT pembayaran.*, tiket.harga, tiket.status_pembayaran, pelayaran.penumpang, pelayaran.golongan, pelayaran.kendaraan FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket JOIN pelayaran ON tiket.id_pelayaran=pelayaran.id_pelayaran JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang WHERE penumpang.nomor_telepon='$nomor_telepon'";
+    $tiket = "SELECT tiket.*, penumpang.nama, penumpang.umur, penumpang.alamat, jk.jenis_kelamin, kelas.nama_kelas, golongan.nama_golongan, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.nama_kapal, kapal.jenis_kapal, rute.cabang, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak 
+                FROM tiket 
+                JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang 
+                JOIN kelas ON penumpang.id_kelas=kelas.id_kelas
+                JOIN jk ON penumpang.id_jk=jk.id_jk
+                JOIN pemesanan ON penumpang.id_penumpang=pemesanan.id_penumpang 
+                JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan
+                JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal 
+                JOIN kapal ON jadwal.id_kapal=kapal.id_kapal 
+                JOIN rute ON jadwal.id_rute=rute.id_rute 
+                WHERE pemesanan.id_user='$idUser'";
+    $view_tiket = mysqli_query($conn, $tiket);
+
+    $pembayaran = "SELECT * FROM pemesanan JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal WHERE pemesanan.id_user='$idUser' AND jadwal.tanggal_berangkat > CURDATE() AND jadwal.jam_berangkat > CURTIME() GROUP BY pemesanan.no_pemesanan";
     $view_pembayaran = mysqli_query($conn, $pembayaran);
     if (isset($_POST["tambah-pembayaran"])) {
       if (pembayaran($conn, $_POST, $action = "insert", $baseURL, $idUser) > 0) {
@@ -395,22 +443,34 @@ if (isset($_SESSION["data-user"])) {
     }
 
     $overview = "SELECT * FROM tiket 
-             JOIN pembayaran ON pembayaran.id_tiket=tiket.id_tiket
-             JOIN pelayaran ON tiket.id_pelayaran = pelayaran.id_pelayaran 
-             JOIN jadwal ON pelayaran.id_jadwal = jadwal.id_jadwal 
+             JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang 
+             JOIN kelas ON penumpang.id_kelas=kelas.id_kelas 
+             JOIN pemesanan ON penumpang.id_penumpang=pemesanan.id_penumpang 
+             JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan 
+             JOIN pembayaran ON pemesanan.no_pemesanan=pembayaran.no_pemesanan
+             JOIN jadwal ON pemesanan.id_jadwal = jadwal.id_jadwal 
              JOIN kapal ON jadwal.id_kapal = kapal.id_kapal 
              JOIN rute ON jadwal.id_rute = rute.id_rute 
-             WHERE tiket.id_penumpang = '$idUser' 
+             WHERE pemesanan.id_user = '$idUser' 
              AND tiket.qr_code IS NOT NULL 
-             AND tiket.tgl_jalan >= CURDATE()
-             AND tiket.jam_jalan >= CURTIME()";
+             AND jadwal.tanggal_berangkat >= CURDATE()
+             AND jadwal.jam_berangkat >= CURTIME()";
     $view_overview = mysqli_query($conn, $overview);
 
-    $count_tiket = "SELECT * FROM tiket JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang WHERE penumpang.nomor_telepon='$nomor_telepon'";
+    $count_tiket = "SELECT * FROM tiket JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang JOIN pemesanan ON penumpang.id_penumpang=pemesanan.id_penumpang WHERE pemesanan.id_user='$idUser'";
     $count_tiket = mysqli_query($conn, $count_tiket);
     $countTiket = mysqli_num_rows($count_tiket);
-    $count_pembayaran = "SELECT * FROM pembayaran JOIN tiket ON pembayaran.id_tiket=tiket.id_tiket JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang  WHERE penumpang.nomor_telepon='$nomor_telepon'";
+    $count_pembayaran = "SELECT * FROM pemesanan WHERE id_user='$idUser'";
     $count_pembayaran = mysqli_query($conn, $count_pembayaran);
     $countPembayaran = mysqli_num_rows($count_pembayaran);
+
+    if (isset($_POST["hapus-pemesanan"])) {
+      if (pemesanan($conn, $_POST, $action = "update") > 0) {
+        $_SESSION["message-success"] = "Data pemesanan berhasil dibatalkan.";
+        $_SESSION["time-message"] = time();
+        header("Location: pemesanan");
+        exit();
+      }
+    }
   }
 }

@@ -5,8 +5,14 @@ if (!isset($_SESSION['redirect'])) {
 } else {
   $pelabuhan_asal = valid($conn, $_SESSION['redirect']['pelabuhan_asal']);
   $pelabuhan_tujuan = valid($conn, $_SESSION['redirect']['pelabuhan_tujuan']);
-  $pelayaran = "SELECT pelayaran.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.img_kapal, kapal.nama_kapal, kapal.kapasitas, kapal.jenis_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan FROM pelayaran JOIN jadwal ON pelayaran.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute WHERE rute.pelabuhan_asal='$pelabuhan_asal' AND rute.pelabuhan_tujuan='$pelabuhan_tujuan' GROUP BY pelayaran.id_jadwal ORDER BY pelayaran.id_pelayaran DESC";
-  $front_pelayaran = mysqli_query($conn, $pelayaran);
+  $sekarang = date('Y-m-d H:i:s');
+  $jadwal = "SELECT * FROM jadwal 
+           JOIN kapal ON jadwal.id_kapal = kapal.id_kapal 
+           JOIN rute ON jadwal.id_rute = rute.id_rute 
+           WHERE rute.pelabuhan_asal = '$pelabuhan_asal' 
+           AND rute.pelabuhan_tujuan = '$pelabuhan_tujuan'
+           AND CONCAT(jadwal.tanggal_berangkat, ' ', jadwal.jam_berangkat) > '$sekarang'";
+  $front_jadwal = mysqli_query($conn, $jadwal);
 }
 $_SESSION["page-name"] = "Pelayaran";
 $_SESSION["page-url"] = "pelayaran";
@@ -72,12 +78,12 @@ $_SESSION["page-url"] = "pelayaran";
       }
     }
 
-    .card {
+    .card-scale {
       transform: none;
       transition: 0.25s ease-in-out;
     }
 
-    .card img {
+    .card-scale img {
       height: 200px;
       object-fit: cover;
     }
@@ -91,7 +97,7 @@ $_SESSION["page-url"] = "pelayaran";
       transition: 0.25s ease-in-out;
     }
 
-    .card:hover,
+    .card-scale:hover,
     .card-title-custom:hover {
       transform: scale(1.1);
       color: #00c6a9;
@@ -130,113 +136,14 @@ $_SESSION["page-url"] = "pelayaran";
   <!-- about section -->
   <section class="about_section layout_padding">
     <div class="container">
-      <?php if (isset($_GET['select'])) {
-        if (!empty($_GET['select'])) { ?>
-          <div class="row">
-            <div class="col-lg-12">
-              <h4>Pilih Tiket Kamu</h4>
-            </div>
-            <?php $id_jadwal = valid($conn, $_GET['select']);
-            $take_pelayaran = "SELECT pelayaran.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.img_kapal, kapal.nama_kapal, kapal.kapasitas, kapal.jenis_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan FROM pelayaran JOIN jadwal ON pelayaran.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute WHERE pelayaran.id_jadwal='$id_jadwal'";
-            $takePelayaran = mysqli_query($conn, $take_pelayaran);
-            if (mysqli_num_rows($takePelayaran) > 0) {
-              while ($row_pel = mysqli_fetch_assoc($takePelayaran)) { ?>
-                <div class="col-md-10">
-                  <div class="card mb-3 rounded-0 border-0 shadow">
-                    <div class="row g-0">
-                      <div class="col-md-4">
-                        <img src="<?= $row_pel['img_kapal'] ?>" class="img-fluid rounded-start" alt="<?= $row_pel['nama_kapal'] ?>">
-                      </div>
-                      <div class="col-md-4">
-                        <div class="card-body">
-                          <h5 class="card-title"><?= $row_pel['nama_kapal'] ?></h5>
-                          <p>Penumpang <strong><?= $row_pel['penumpang'] ?></strong></p>
-                          <p style="margin-top: -15px;">Golongan <strong><?= $row_pel['golongan'] . " " . $row_pel['kendaraan'] ?></strong></p>
-                          <p style="margin-top: -15px;">Harga Rp. <strong><?= number_format($row_pel['harga']) ?></strong></p>
-                        </div>
-                      </div>
-                      <div class="col-md-4">
-                        <div class="card-body">
-                          <p>Lintasan <strong><?= $row_pel['pelabuhan_asal'] . ' - ' . $row_pel['pelabuhan_tujuan'] ?></strong></p>
-                          <p style="margin-top: -15px;">Jadwal <strong><?php $tgl = date_create($row_pel["tanggal_berangkat"]);
-                                                                        echo date_format($tgl, "d M Y") . " - " . $row_pel['jam_berangkat']; ?></strong></p>
-                          <button type="button" class="btn btn-primary btn-sm rounded-0 text-white" data-toggle="modal" data-target="#tiket<?= $row_pel['id_pelayaran'] ?>">
-                            Pilih Tiket
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="modal fade" id="tiket<?= $row_pel['id_pelayaran'] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header border-bottom-0 shadow">
-                        <h5 class="modal-title" id="exampleModalLabel">Detail Penumpang</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                          <span aria-hidden="true">&times;</span>
-                        </button>
-                      </div>
-                      <form action="" method="post">
-                        <div class="modal-body">
-                          <?php $pessanger = valid($conn, $_SESSION["redirect"]["pessanger"]);
-                          for ($pess = 1; $pess <= $pessanger; $pess++) { ?>
-                            <h6>Penumpang <?= $pess ?></h6>
-                            <div class="form-group mt-3">
-                              <label for="nama">Nama Penumpang <span class="text-danger">*</span></label>
-                              <input type="text" name="nama[]" id="nama" class="form-control text-center" placeholder="Nama Penumpang" min="3" required>
-                            </div>
-                            <div class="form-group">
-                              <label for="id_jk">Jenis Kelamin <span class="text-danger">*</span></label>
-                              <select name="id_jk[]" id="id_jk" class="form-control" aria-label="Default select example" required>
-                                <option selected value="">Pilih Jenis Kelamin</option>
-                                <?php foreach ($selectJK as $row_jk) { ?>
-                                  <option value="<?= $row_jk['id_jk'] ?>"><?= $row_jk['jenis_kelamin'] ?></option>
-                                <?php } ?>
-                              </select>
-                            </div>
-                            <div class="form-group">
-                              <label for="umur">Umur <span class="text-danger">*</span></label>
-                              <input type="number" name="umur[]" id="umur" class="form-control text-center" placeholder="Umur" step="1" min="1" required>
-                            </div>
-                            <div class="form-group">
-                              <label for="alamat">Alamat <span class="text-danger">*</span></label>
-                              <input type="text" name="alamat[]" id="alamat" class="form-control text-center" placeholder="Alamat" required>
-                            </div>
-                          <?php } ?>
-                          <hr>
-                          <p class="text-success">Masukan nomor handphone anda disini untuk melanjutkan pembayaran.</p>
-                          <div class="form-group">
-                            <label for="nomor_telepon">No. HP <span class="text-danger">*</span></label>
-                            <input type="number" name="nomor_telepon" id="nomor_telepon" class="form-control text-center" placeholder="No. HP" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4||3}" required>
-                          </div>
-                        </div>
-                        <div class="modal-footer border-top-0 justify-content-center">
-                          <input type="hidden" name="id_pelayaran" value="<?= $row_pel['id_pelayaran'] ?>">
-                          <input type="hidden" name="harga" value="<?= $row_pel['harga'] ?>">
-                          <input type="hidden" name="tgl_jalan" value="<?= $row_pel['tanggal_berangkat'] ?>">
-                          <input type="hidden" name="jam_jalan" value="<?= $row_pel['jam_berangkat'] ?>">
-                          <button type="button" class="btn btn-secondary rounded-0" data-dismiss="modal">Close</button>
-                          <button type="submit" name="daftar-pelayaran" class="btn btn-primary rounded-0 text-white">Lanjut</button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-            <?php }
-            } ?>
-          </div>
-          <hr>
-      <?php }
-      } ?>
       <div class="row">
         <div class="col-lg-12">
           <h4>Pilih Pelayaran Kamu</h4>
         </div>
-        <?php if (mysqli_num_rows($front_pelayaran) > 0) {
-          while ($row = mysqli_fetch_assoc($front_pelayaran)) { ?>
+        <?php if (mysqli_num_rows($front_jadwal) > 0) {
+          while ($row = mysqli_fetch_assoc($front_jadwal)) { ?>
             <div class="col-lg-3 mt-3">
-              <div class="card border-0 shadow">
+              <div class="card card-scale border-0 shadow">
                 <img src="<?= $row['img_kapal'] ?>" class="card-img-top" alt="<?= $row['nama_kapal'] ?>">
                 <h5 class="card-title-custom"><?= $row['nama_kapal'] ?></h5>
                 <div class="card-body" style="margin-top: 40px;">
@@ -254,6 +161,107 @@ $_SESSION["page-url"] = "pelayaran";
           </div>
         <?php } ?>
       </div>
+      <?php if (isset($_GET['select'])) {
+        if (!empty($_GET['select'])) { ?>
+          <div class="row">
+            <div class="col-lg-12">
+              <hr>
+              <h4>Masukan Data Kamu</h4>
+            </div>
+            <?php $id_jadwal = valid($conn, $_GET['select']);
+            $take_jadwal = "SELECT * FROM jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute WHERE jadwal.id_jadwal='$id_jadwal'";
+            $takeJadwal = mysqli_query($conn, $take_jadwal);
+            if (mysqli_num_rows($takeJadwal) > 0) {
+              while ($row_pel = mysqli_fetch_assoc($takeJadwal)) { ?>
+                <div class="col-md-10">
+                  <div class="card mb-3 rounded-0 border-0 shadow">
+                    <div class="row g-0">
+                      <div class="col-md-4 mb-auto">
+                        <img src="<?= $row_pel['img_kapal'] ?>" class="img-fluid rounded-start" alt="<?= $row_pel['nama_kapal'] ?>">
+                      </div>
+                      <div class="col-md-8">
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <div class="card-body">
+                              <h5 class="card-title"><?= $row_pel['nama_kapal'] ?></h5>
+                              <p>Kapasitas <strong><?= $row_pel['kapasitas'] ?> penumpang</strong></p>
+                            </div>
+                          </div>
+                          <div class="col-lg-6">
+                            <div class="card-body">
+                              <p>Lintasan <strong><?= $row_pel['pelabuhan_asal'] . ' - ' . $row_pel['pelabuhan_tujuan'] ?></strong></p>
+                              <p style="margin-top: -15px;">Jadwal <strong><?php $tgl = date_create($row_pel["tanggal_berangkat"]);
+                                                                            echo date_format($tgl, "d M Y") . " - " . $row_pel['jam_berangkat']; ?></strong></p>
+                            </div>
+                          </div>
+                          <div class="col-md-12">
+                            <div class="card-body">
+                              <form action="" method="post">
+                                <?php $pessanger = valid($conn, $_SESSION["redirect"]["pessanger"]);
+                                for ($pess = 1; $pess <= $pessanger; $pess++) { ?>
+                                  <h6>Penumpang <?= $pess ?></h6>
+                                  <div class="form-group mt-3">
+                                    <label for="nama">Nama Penumpang <span class="text-danger">*</span></label>
+                                    <input type="text" name="nama[]" id="nama" class="form-control text-center" placeholder="Nama Penumpang" min="3" required>
+                                  </div>
+                                  <div class="form-group">
+                                    <label for="id_kelas">Kelas <span class="text-danger">*</span></label>
+                                    <select name="id_kelas[]" id="id_kelas" class="form-control" aria-label="Default select example" required>
+                                      <option selected value="">Pilih Kelas</option>
+                                      <?php foreach ($selectKel as $row_kel) { ?>
+                                        <option value="<?= $row_kel['id_kelas'] ?>"><?= $row_kel['nama_kelas'] . " Rp. " . number_format($row_kel['harga_kelas']) ?></option>
+                                      <?php } ?>
+                                    </select>
+                                  </div>
+                                  <div class="form-group">
+                                    <label for="id_jk">Jenis Kelamin <span class="text-danger">*</span></label>
+                                    <select name="id_jk[]" id="id_jk" class="form-control" aria-label="Default select example" required>
+                                      <option selected value="">Pilih Jenis Kelamin</option>
+                                      <?php foreach ($selectJK as $row_jk) { ?>
+                                        <option value="<?= $row_jk['id_jk'] ?>"><?= $row_jk['jenis_kelamin'] ?></option>
+                                      <?php } ?>
+                                    </select>
+                                  </div>
+                                  <div class="form-group">
+                                    <label for="umur">Umur <span class="text-danger">*</span></label>
+                                    <input type="number" name="umur[]" id="umur" class="form-control text-center" placeholder="Umur" step="1" min="1" required>
+                                  </div>
+                                  <div class="form-group">
+                                    <label for="alamat">Alamat <span class="text-danger">*</span></label>
+                                    <input type="text" name="alamat[]" id="alamat" class="form-control text-center" placeholder="Alamat" required>
+                                  </div>
+                                <?php } ?>
+                                <div class="form-group">
+                                  <label for="id_golongan">Golongan <span class="text-danger">*</span></label>
+                                  <select name="id_golongan" id="id_golongan" class="form-control" aria-label="Default select example" required>
+                                    <option selected value="">Pilih Golongan</option>
+                                    <?php foreach ($selectGol as $row_gol) { ?>
+                                      <option value="<?= $row_gol['id_golongan'] ?>"><?= $row_gol['nama_golongan'] . " Rp. " . number_format($row_gol['harga_golongan']) ?></option>
+                                    <?php } ?>
+                                  </select>
+                                </div>
+                                <hr>
+                                <p class="text-success">Masukan nomor handphone anda disini untuk melanjutkan pembayaran.</p>
+                                <div class="form-group">
+                                  <label for="nomor_telepon">No. HP <span class="text-danger">*</span></label>
+                                  <input type="number" name="nomor_telepon" id="nomor_telepon" class="form-control text-center" placeholder="No. HP" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4||3}" required>
+                                </div>
+                                <input type="hidden" name="id_jadwal" value="<?= $row_pel['id_jadwal'] ?>">
+                                <button type="submit" name="daftar-pelayaran" class="btn btn-primary rounded-0 text-white">Pesan Tiket</button>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            <?php }
+            } ?>
+          </div>
+          <hr>
+      <?php }
+      } ?>
     </div>
   </section>
   <!-- end about section -->

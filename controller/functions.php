@@ -26,30 +26,39 @@ function WAAPI($target, $pesan, $token = "P2eS-zGGpJJPjwI8UnC1")
   curl_close($curl);
   return $response;
 }
-
+function generateRandomCode($length = 6)
+{
+  $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  $code = '';
+  for ($i = 0; $i < $length; $i++) {
+    $code .= $characters[rand(0, strlen($characters) - 1)];
+  }
+  return $code;
+}
 function daftar_pelayaran($conn, $data)
 {
-  $checkAccount = mysqli_query($conn, "SELECT * FROM penumpang ORDER BY id_penumpang DESC LIMIT 1");
-  if (mysqli_num_rows($checkAccount) > 0) {
-    $row = mysqli_fetch_assoc($checkAccount);
+  $checkPenumpang = mysqli_query($conn, "SELECT * FROM penumpang ORDER BY id_penumpang DESC LIMIT 1");
+  if (mysqli_num_rows($checkPenumpang) > 0) {
+    $row = mysqli_fetch_assoc($checkPenumpang);
     $lastIdPenumpang = $row['id_penumpang'];
   } else {
     $lastIdPenumpang = 0;
   }
   $nama = $data['nama'];
+  $id_kelas = $data['id_kelas'];
   $id_jk = $data['id_jk'];
   $umur = $data['umur'];
   $alamat = $data['alamat'];
+  $id_golongan = valid($conn, $data['id_golongan']);
   $nomor_telepon = valid($conn, $data['nomor_telepon']);
-  $id_pelayaran = valid($conn, $data['id_pelayaran']);
-  $harga = valid($conn, $data['harga']);
-  $tgl_jalan = valid($conn, $data['tgl_jalan']);
-  $jam_jalan = valid($conn, $data['jam_jalan']);
+  $id_jadwal = valid($conn, $data['id_jadwal']);
+  $no_pemesanan = generateRandomCode(6);
 
   $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE nomor_telepon='$nomor_telepon'");
   if (mysqli_num_rows($checkAccount) > 0) {
     $row = mysqli_fetch_assoc($checkAccount);
     $nomor_tlpn = $row['nomor_telepon'];
+    $id_user = $row['id_user'];
     if ($row['id_status'] == 2) {
       $_SESSION["message-danger"] = "Maaf, akun anda belum diaktivasi. Silakan cek whatsapp anda kembali";
       $_SESSION["time-message"] = time();
@@ -58,8 +67,8 @@ function daftar_pelayaran($conn, $data)
       $en_user = crc32($nomor_telepon);
       for ($i = 0; $i < count($nama); $i++) {
         $id_penumpang = $lastIdPenumpang + 1;
-        mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, en_user, nama, id_jk, umur, alamat, nomor_telepon) VALUES ('$id_penumpang', '$en_user', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]', '$nomor_telepon')");
-        mysqli_query($conn, "INSERT INTO tiket (id_pelayaran, id_penumpang, harga, tgl_jalan, jam_jalan) VALUES ('$id_pelayaran', '$id_penumpang', '$harga', '$tgl_jalan', '$jam_jalan')");
+        mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, id_kelas, nama, id_jk, umur, alamat) VALUES ('$id_penumpang', '$id_kelas[$i]', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]')");
+        mysqli_query($conn, "INSERT INTO pemesanan (id_user, id_jadwal, id_penumpang, id_golongan, no_pemesanan) VALUES ('$id_user', '$id_jadwal', '$id_penumpang', '$id_golongan', '$no_pemesanan')");
         $lastIdPenumpang = $id_penumpang;
       }
 
@@ -71,14 +80,21 @@ function daftar_pelayaran($conn, $data)
       return mysqli_affected_rows($conn);
     }
   } else {
+    $checkAccount = mysqli_query($conn, "SELECT * FROM users ORDER BY id_user DESC LIMIT 1");
+    if (mysqli_num_rows($checkAccount) > 0) {
+      $row = mysqli_fetch_assoc($checkAccount);
+      $id_user = $row['id_user'] + 1;
+    } else {
+      $id_user = 1;
+    }
     $en_user = crc32($nomor_telepon);
+    mysqli_query($conn, "INSERT INTO users(id_user,en_user,username,nomor_telepon) VALUES('$id_user','$en_user','penumpang_$en_user','$nomor_telepon')");
     for ($i = 0; $i < count($nama); $i++) {
       $id_penumpang = $lastIdPenumpang + 1;
-      mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, en_user, nama, id_jk, umur, alamat, nomor_telepon) VALUES ('$id_penumpang', '$en_user', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]', '$nomor_telepon')");
-      mysqli_query($conn, "INSERT INTO tiket (id_pelayaran, id_penumpang, harga, tgl_jalan, jam_jalan) VALUES ('$id_pelayaran', '$id_penumpang', '$harga', '$tgl_jalan', '$jam_jalan')");
+      mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, id_kelas, nama, id_jk, umur, alamat) VALUES ('$id_penumpang', '$id_kelas[$i]', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]')");
+      mysqli_query($conn, "INSERT INTO pemesanan (id_user, id_jadwal, id_penumpang, id_golongan, no_pemesanan) VALUES ('$id_user', '$id_jadwal', '$id_penumpang', '$id_golongan', '$no_pemesanan')");
       $lastIdPenumpang = $id_penumpang;
     }
-    mysqli_query($conn, "INSERT INTO users(en_user,username,nomor_telepon) VALUES('$en_user','penumpang_$en_user','$nomor_telepon')");
 
     // Send to Whatsapp
     $target = $nomor_telepon;
@@ -287,14 +303,94 @@ if (isset($_SESSION["data-user"])) {
           $_SESSION["time-message"] = time();
           return false;
         } else {
-          $sql = "UPDATE account_bank SET an='$an', bank='$bank', norek='$norek' WHERE id='$id'";
+          $sql = "UPDATE account_bank SET an='$an', bank='$bank', norek='$norek' WHERE id_bank='$id'";
         }
       }
     }
 
     if ($action == "delete") {
       $id = valid($conn, $data['id']);
-      $sql = "DELETE FROM account_bank WHERE id='$id'";
+      $sql = "DELETE FROM account_bank WHERE id_bank='$id'";
+    }
+
+    mysqli_query($conn, $sql);
+    return mysqli_affected_rows($conn);
+  }
+  function kelas($conn, $data, $action)
+  {
+    $nama_kelas = valid($conn, $data['nama_kelas']);
+    $harga_kelas = valid($conn, $data['harga_kelas']);
+
+    if ($action == "insert") {
+      $kelas = "SELECT * FROM kelas WHERE nama_kelas='$nama_kelas'";
+      $check_kelas = mysqli_query($conn, $kelas);
+      if (mysqli_num_rows($check_kelas) > 0) {
+        $_SESSION["message-danger"] = "Maaf, nama kelas yang anda masukan sudah ada.";
+        $_SESSION["time-message"] = time();
+        return false;
+      } else {
+        $sql = "INSERT INTO kelas(nama_kelas,harga_kelas) VALUES('$nama_kelas','$harga_kelas')";
+      }
+    }
+
+    if ($action == "update") {
+      $id_kelas = valid($conn, $data['id_kelas']);
+      $nama_kelasOld = valid($conn, $data['nama_kelasOld']);
+      if ($nama_kelas != $nama_kelasOld) {
+        $kelas = "SELECT * FROM kelas WHERE nama_kelas='$nama_kelas'";
+        $check_kelas = mysqli_query($conn, $kelas);
+        if (mysqli_num_rows($check_kelas) > 0) {
+          $_SESSION["message-danger"] = "Maaf, nama kelas yang anda masukan sudah ada.";
+          $_SESSION["time-message"] = time();
+          return false;
+        }
+      }
+      $sql = "UPDATE kelas SET nama_kelas='$nama_kelas', harga_kelas='$harga_kelas' WHERE id_kelas='$id_kelas'";
+    }
+
+    if ($action == "delete") {
+      $id_kelas = valid($conn, $data['id_kelas']);
+      $sql = "DELETE FROM kelas WHERE id_kelas='$id_kelas'";
+    }
+
+    mysqli_query($conn, $sql);
+    return mysqli_affected_rows($conn);
+  }
+  function golongan($conn, $data, $action)
+  {
+    $nama_golongan = valid($conn, $data['nama_golongan']);
+    $harga_golongan = valid($conn, $data['harga_golongan']);
+
+    if ($action == "insert") {
+      $golongan = "SELECT * FROM golongan WHERE nama_golongan='$nama_golongan'";
+      $check_golongan = mysqli_query($conn, $golongan);
+      if (mysqli_num_rows($check_golongan) > 0) {
+        $_SESSION["message-danger"] = "Maaf, nama golongan yang anda masukan sudah ada.";
+        $_SESSION["time-message"] = time();
+        return false;
+      } else {
+        $sql = "INSERT INTO golongan(nama_golongan,harga_golongan) VALUES('$nama_golongan','$harga_golongan')";
+      }
+    }
+
+    if ($action == "update") {
+      $id_golongan = valid($conn, $data['id_golongan']);
+      $nama_golonganOld = valid($conn, $data['nama_golonganOld']);
+      if ($nama_golongan != $nama_golonganOld) {
+        $golongan = "SELECT * FROM golongan WHERE nama_golongan='$nama_golongan'";
+        $check_golongan = mysqli_query($conn, $golongan);
+        if (mysqli_num_rows($check_golongan) > 0) {
+          $_SESSION["message-danger"] = "Maaf, nama golongan yang anda masukan sudah ada.";
+          $_SESSION["time-message"] = time();
+          return false;
+        }
+      }
+      $sql = "UPDATE golongan SET nama_golongan='$nama_golongan', harga_golongan='$harga_golongan' WHERE id_golongan='$id_golongan'";
+    }
+
+    if ($action == "delete") {
+      $id_golongan = valid($conn, $data['id_golongan']);
+      $sql = "DELETE FROM golongan WHERE id_golongan='$id_golongan'";
     }
 
     mysqli_query($conn, $sql);
@@ -505,31 +601,6 @@ if (isset($_SESSION["data-user"])) {
     mysqli_query($conn, $sql);
     return mysqli_affected_rows($conn);
   }
-  function pelayaran($conn, $data, $action)
-  {
-    $id_jadwal = valid($conn, $data['id_jadwal']);
-    $penumpang = valid($conn, $data['penumpang']);
-    $golongan = valid($conn, $data['golongan']);
-    $kendaraan = valid($conn, $data['kendaraan']);
-    $harga = valid($conn, $data['harga']);
-
-    if ($action == "insert") {
-      $sql = "INSERT INTO pelayaran(id_jadwal,penumpang,golongan,kendaraan,harga) VALUES('$id_jadwal','$penumpang','$golongan','$kendaraan','$harga')";
-    }
-
-    if ($action == "update") {
-      $id_pelayaran = valid($conn, $data['id_pelayaran']);
-      $sql = "UPDATE pelayaran SET id_jadwal='$id_jadwal', penumpang='$penumpang', golongan='$golongan', kendaraan='$kendaraan', harga='$harga' WHERE id_pelayaran='$id_pelayaran'";
-    }
-
-    if ($action == "delete") {
-      $id_pelayaran = valid($conn, $data['id_pelayaran']);
-      $sql = "DELETE FROM pelayaran WHERE id_pelayaran='$id_pelayaran'";
-    }
-
-    mysqli_query($conn, $sql);
-    return mysqli_affected_rows($conn);
-  }
   function informasi($conn, $data, $action)
   {
     $informasi = $data['informasi'];
@@ -602,47 +673,10 @@ if (isset($_SESSION["data-user"])) {
 
     return mysqli_affected_rows($conn);
   }
-  function tiket($conn, $data, $action)
-  {
-    $status_pembayaran = valid($conn, $data['status_pembayaran']);
-    $qr_code = valid($conn, $data['qr_code']);
-
-    if ($action == "insert") {
-    }
-
-    if ($action == "update") {
-      $id_tiket = valid($conn, $data['id_tiket']);
-      $nomor_telepon = valid($conn, $data['nomor_telepon']);
-      if ($status_pembayaran == "Gagal") {
-        $pesan_status = "Maaf pembayaran gagal diterima, silakan masukan bukti pembayaran yang semestinya sesuai tiket anda!";
-      } else if ($status_pembayaran == "Diterima") {
-        $pesan_status = "Selamat pembayaran berhasil, bukti pembayaran anda berhasil diterima dengan baik oleh petugas kami. Silakan masuk ke akun kamu dan tunjukan tiket saat ingin memasuki kapal.";
-        $qr_code = qrcode($id_tiket);
-      }
-
-      // Send to Whatsapp
-      $target = $nomor_telepon;
-      $pesan = "Pembayaran kamu *" . $status_pembayaran . "*. Silakan lihat tiket kamu disini👉 http://127.0.0.1:1010/apps/asdp-kupang/views/tiket";
-      WAAPI($target, $pesan);
-
-      if ($status_pembayaran == "Gagal") {
-        $sql = "UPDATE tiket SET status_pembayaran='$status_pembayaran' WHERE id_tiket='$id_tiket'";
-      } else if ($status_pembayaran == "Diterima") {
-        $sql = "UPDATE tiket SET status_pembayaran='$status_pembayaran', qr_code='$qr_code' WHERE id_tiket='$id_tiket'";
-      }
-    }
-
-    if ($action == "delete") {
-      $id_tiket = valid($conn, $data['id_tiket']);
-      $sql = "DELETE FROM tiket WHERE id_tiket='$id_tiket'";
-    }
-
-    mysqli_query($conn, $sql);
-    return mysqli_affected_rows($conn);
-  }
   function pembayaran($conn, $data, $action, $baseURL, $idUser)
   {
-    $id_tiket = valid($conn, $data['id_tiket']);
+    $no_pemesanan = valid($conn, $data['no_pemesanan']);
+    $id_bank = valid($conn, $data['id_bank']);
     $total_bayar = valid($conn, $data['total_bayar']);
 
     // Upload Image Ship
@@ -668,16 +702,15 @@ if (isset($_SESSION["data-user"])) {
     }
 
     if ($action == "insert") {
-      $check_tgl = "SELECT jadwal.tanggal_berangkat, jadwal.jam_berangkat FROM tiket JOIN pelayaran ON tiket.id_pelayaran = pelayaran.id_pelayaran JOIN jadwal ON pelayaran.id_jadwal = jadwal.id_jadwal WHERE tiket.id_penumpang = '$idUser' AND jadwal.tanggal_berangkat <= CURDATE() AND jadwal.jam_berangkat <= CURTIME()";
+      $check_tgl = "SELECT jadwal.tanggal_berangkat, jadwal.jam_berangkat FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal = jadwal.id_jadwal WHERE pemesanan.id_user = '$idUser' AND jadwal.tanggal_berangkat <= CURDATE() AND jadwal.jam_berangkat <= CURTIME()";
       $checkTgl = mysqli_query($conn, $check_tgl);
       if (mysqli_num_rows($checkTgl) > 0) {
-        $_SESSION['message-danger'] = "Maaf, tiket anda telah dianggap hangus atau tidak dapat dipakai. Silakan menunggu jadwal pelayaran berikutnya!.";
+        $_SESSION['message-danger'] = "Maaf, pemesanan tiket anda telah dianggap hangus atau tidak dapat dipakai. Silakan menunggu jadwal pelayaran berikutnya!.";
         $_SESSION['time-message'] = time();
         return false;
       }
-      $sql = "INSERT INTO pembayaran(id_tiket,bukti_bayar,total_bayar) VALUES('$id_tiket','$url_image','$total_bayar');";
-      $sql .= "UPDATE tiket SET status_pembayaran='Checking' WHERE id_tiket='$id_tiket';";
-      mysqli_multi_query($conn, $sql);
+      $sql = "INSERT INTO pembayaran(no_pemesanan,id_bank,bukti_bayar,total_bayar) VALUES('$no_pemesanan','$id_bank','$url_image','$total_bayar')";
+      mysqli_query($conn, $sql);
     }
 
     if ($action == "update") {
@@ -687,9 +720,97 @@ if (isset($_SESSION["data-user"])) {
       if ($remove_avatar != "default.jpg") {
         unlink($path . $remove_avatar);
       }
-      $sql = "UPDATE pembayaran SET bukti_bayar='$url_image' WHERE id_tiket='$id_tiket';";
-      $sql .= "UPDATE tiket SET status_pembayaran='Checking' WHERE id_tiket='$id_tiket';";
-      mysqli_multi_query($conn, $sql);
+      $sql = "UPDATE pembayaran SET id_bank='$id_bank', bukti_bayar='$url_image', status_pembayaran='Checking' WHERE no_pemesanan='$no_pemesanan'";
+      mysqli_query($conn, $sql);
+    }
+
+    if ($action == "delete") {
+    }
+
+    return mysqli_affected_rows($conn);
+  }
+  function pembayaran_checking($conn, $data, $action, $nomor_telepon)
+  {
+    $status_pembayaran = valid($conn, $data['status_pembayaran']);
+
+    if ($action == "insert") {
+    }
+
+    if ($action == "update") {
+      $id_pembayaran = valid($conn, $data['id_pembayaran']);
+      $id_jadwal = valid($conn, $data['id_jadwal']);
+      $no_pemesanan = valid($conn, $data['no_pemesanan']);
+      if ($status_pembayaran == "Gagal") {
+        $pesan = "Maaf pembayaran gagal diterima, silakan masukan bukti pembayaran yang semestinya sesuai tiket anda!. Lihat tiket kamu disini👉 http://127.0.0.1:1010/apps/asdp-kupang/views/tiket";
+        $sql = "UPDATE pembayaran SET status_pembayaran='$status_pembayaran' WHERE id_pembayaran='$id_pembayaran'";
+        mysqli_query($conn, $sql);
+      } else if ($status_pembayaran == "Diterima") {
+        $pesan = "Selamat pembayaran berhasil, bukti pembayaran anda berhasil diterima dengan baik oleh petugas kami. Silakan masuk ke akun kamu dan tunjukan tiket saat ingin memasuki kapal. Lihat tiket kamu disini👉 http://127.0.0.1:1010/apps/asdp-kupang/views/tiket";
+        $sql = "UPDATE pembayaran SET status_pembayaran='$status_pembayaran' WHERE id_pembayaran='$id_pembayaran'";
+        mysqli_query($conn, $sql);
+        $pemesanan = "SELECT * FROM pemesanan JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang WHERE pemesanan.no_pemesanan='$no_pemesanan' AND pemesanan.id_status=1";
+        $takePemesanan = mysqli_query($conn, $pemesanan);
+        if (mysqli_num_rows($takePemesanan) > 0) {
+          while ($row = mysqli_fetch_assoc($takePemesanan)) {
+            $id_penumpang = $row['id_penumpang'];
+            $check_tiket = "SELECT * FROM tiket WHERE id_jadwal='$id_jadwal' ORDER BY no_tiket DESC LIMIT 1";
+            $checkTiket = mysqli_query($conn, $check_tiket);
+            if (mysqli_num_rows($checkTiket) > 0) {
+              $rowTiket = mysqli_fetch_assoc($checkTiket);
+              $no_tiket = $rowTiket['no_tiket'] + 1;
+            } else if (mysqli_num_rows($checkTiket) == 0) {
+              $no_tiket = 1;
+            }
+            $qr_code = qrcode($no_pemesanan . $no_tiket);
+            $sql = "INSERT INTO tiket(id_jadwal,id_penumpang,no_tiket,qr_code) VALUES('$id_jadwal','$id_penumpang','$no_tiket','$qr_code')";
+            mysqli_query($conn, $sql);
+          }
+        }
+      }
+      // Send to Whatsapp
+      $target = $nomor_telepon;
+      WAAPI($target, $pesan);
+    }
+
+    if ($action == "delete") {
+    }
+
+    return mysqli_affected_rows($conn);
+  }
+  function pemesanan($conn, $data, $action)
+  {
+
+    if ($action == "insert") {
+    }
+
+    if ($action == "update") {
+      $id_pemesanan = valid($conn, $data['id_pemesanan']);
+      $no_pemesanan = valid($conn, $data['no_pemesanan']);
+      $id_penumpang = valid($conn, $data['id_penumpang']);
+      $harga = valid($conn, $data['harga']);
+      $pembayaran = "SELECT * FROM pembayaran WHERE no_pemesanan='$no_pemesanan'";
+      $takePembayaran = mysqli_query($conn, $pembayaran);
+      if (mysqli_num_rows($takePembayaran) == 0) {
+        mysqli_query($conn, "DELETE FROM pemesanan WHERE id_pemesanan='$id_pemesanan'");
+      } else if (mysqli_num_rows($takePembayaran) > 0) {
+        $check_pemesanan = "SELECT * FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal WHERE pemesanan.id_pemesanan='$id_pemesanan' AND jadwal.tanggal_berangkat >= CURDATE() AND jadwal.jam_berangkat >= CURTIME()";
+        $checkPemesanan = mysqli_query($conn, $check_pemesanan);
+        if (mysqli_num_rows($checkPemesanan) > 0) {
+          $row = mysqli_fetch_assoc($takePembayaran);
+          $total_bayar = $row['total_bayar'] - $harga;
+          if ($total_bayar > 0) {
+            mysqli_query($conn, "UPDATE pembayaran SET total_bayar='$total_bayar' WHERE no_pemesanan='$no_pemesanan'");
+          } else if ($total_bayar == 0) {
+            mysqli_query($conn, "UPDATE pembayaran SET total_bayar='$total_bayar', status_pembayaran='Dibatalkan' WHERE no_pemesanan='$no_pemesanan'");
+          }
+          mysqli_query($conn, "UPDATE pemesanan SET id_status='2', tgl_batal=current_timestamp WHERE id_pemesanan='$id_pemesanan'");
+          mysqli_query($conn, "DELETE FROM tiket WHERE id_penumpang='$id_penumpang'");
+        } else if (mysqli_num_rows($checkPemesanan) == 0) {
+          $_SESSION['message-danger'] = "Maaf, anda tidak dapat membatalkan karena sudah melewati jadwal pelayaran.";
+          $_SESSION['time-message'] = time();
+          return false;
+        }
+      }
     }
 
     if ($action == "delete") {

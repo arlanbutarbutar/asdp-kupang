@@ -30,6 +30,18 @@
             <span class="menu-title" style="color: #0C7DC4;">Account Bank</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='kelas'">
+            <i class="mdi mdi-format-list-bulleted menu-icon" style="color: #0C7DC4;"></i>
+            <span class="menu-title" style="color: #0C7DC4;">Kelas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='golongan'">
+            <i class="mdi mdi-format-list-bulleted menu-icon" style="color: #0C7DC4;"></i>
+            <span class="menu-title" style="color: #0C7DC4;">Golongan</span>
+          </a>
+        </li>
       <?php } ?>
       <li class="nav-item">
         <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='kapal'">
@@ -56,12 +68,6 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='pelayaran'">
-          <i class="mdi mdi-ferry menu-icon" style="color: #0C7DC4;"></i>
-          <span class="menu-title" style="color: #0C7DC4;">Pelayaran</span>
-        </a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='informasi'">
           <i class="mdi mdi-information-outline menu-icon" style="color: #0C7DC4;"></i>
           <span class="menu-title" style="color: #0C7DC4;">Informasi</span>
@@ -79,20 +85,26 @@
       <li class="nav-item">
         <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='../index#pemesanan'">
           <i class="mdi mdi-ferry menu-icon" style="color: #0C7DC4;"></i>
-          <span class="menu-title" style="color: #0C7DC4;">Pemesanan</span>
+          <span class="menu-title" style="color: #0C7DC4;">Pelayaran</span>
         </a>
       </li>
     <?php } ?>
     <li class="nav-item">
-      <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='tiket'">
-        <i class="mdi mdi-ticket menu-icon" style="color: #0C7DC4;"></i>
-        <span class="menu-title" style="color: #0C7DC4;">Tiket</span>
+      <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='pemesanan'">
+        <i class="mdi mdi-ferry menu-icon" style="color: #0C7DC4;"></i>
+        <span class="menu-title" style="color: #0C7DC4;">Pemesanan</span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='pembayaran'">
         <i class="mdi mdi-cash-multiple menu-icon" style="color: #0C7DC4;"></i>
         <span class="menu-title" style="color: #0C7DC4;">Pembayaran</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" style="cursor: pointer;" onclick="window.location.href='tiket'">
+        <i class="mdi mdi-ticket menu-icon" style="color: #0C7DC4;"></i>
+        <span class="menu-title" style="color: #0C7DC4;">Tiket</span>
       </a>
     </li>
     <?php if ($role <= 2) { ?>

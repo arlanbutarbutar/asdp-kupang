@@ -44,16 +44,10 @@ $_SESSION["page-url"] = "pembayaran";
                       <thead>
                         <tr>
                           <th scope="col" class="text-center">#</th>
-                          <th scope="col" class="text-center">Tgl Bayar</th>
-                          <?php if ($role <= 2) { ?>
-                            <th scope="col" class="text-center">Nama Penumpang</th>
-                            <th scope="col" class="text-center">Jenis Kelamin</th>
-                            <th scope="col" class="text-center">Umur</th>
-                            <th scope="col" class="text-center">No. Telp</th>
-                          <?php } ?>
-                          <th scope="col" class="text-center">Penumpang</th>
+                          <th scope="col" class="text-center">No. Pemesanan</th>
+                          <th scope="col" class="text-center">Nama Penumpang</th>
+                          <th scope="col" class="text-center">Kelas</th>
                           <th scope="col" class="text-center">Golongan</th>
-                          <th scope="col" class="text-center">Kendaraan</th>
                           <th scope="col" class="text-center">Status Bayar</th>
                           <th scope="col" class="text-center">Total Bayar</th>
                           <th scope="col" class="text-center">Aksi</th>
@@ -65,39 +59,71 @@ $_SESSION["page-url"] = "pembayaran";
                           while ($row = mysqli_fetch_assoc($view_pembayaran)) { ?>
                             <tr>
                               <th scope="row" class="text-center"><?= $no; ?></th>
-                              <td><?php $tgl = date_create($row["tgl_bayar"]);
-                                  echo date_format($tgl, "d M Y") ?></td>
-                              <?php if ($role <= 2) { ?>
-                                <td><?= $row["nama"] ?></td>
-                                <td><?= $row["jenis_kelamin"] ?></td>
-                                <td class="text-center"><?= $row["umur"] ?></td>
-                                <td><?= $row["nomor_telepon"] ?></td>
-                              <?php } ?>
-                              <td><?= $row["penumpang"] ?></td>
-                              <td><?= $row["golongan"] ?></td>
-                              <td><?= $row["kendaraan"] ?></td>
-                              <td><?= $row["status_pembayaran"] ?></td>
-                              <td>Rp. <?= number_format($row["harga"]) ?></td>
+                              <th>#<?= $row['no_pemesanan'] ?></th>
+                              <td><?php
+                                  $no_pemesanan = $row['no_pemesanan'];
+                                  $take_pemesanan = "SELECT * FROM pemesanan JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang WHERE pemesanan.no_pemesanan='$no_pemesanan'";
+                                  $takePemesanan = mysqli_query($conn, $take_pemesanan);
+                                  $noPem = 1;
+                                  while ($rowPem = mysqli_fetch_assoc($takePemesanan)) {
+                                    echo "<p>" . $noPem . ". " . $rowPem['nama'] . "</p>";
+                                    $noPem++;
+                                  }
+                                  ?></td>
+                              <td><?= $row["nama_kelas"] ?></td>
+                              <td><?= $row["nama_golongan"] ?></td>
+                              <td><?php
+                                  $no_pemesanan = $row['no_pemesanan'];
+                                  $check_pembayaran = "SELECT * FROM pembayaran WHERE no_pemesanan='$no_pemesanan'";
+                                  $checkPembayaran = mysqli_query($conn, $check_pembayaran);
+                                  if (mysqli_num_rows($checkPembayaran) == 0) {
+                                    echo "Belum terbayar";
+                                  } else if (mysqli_num_rows($checkPembayaran) > 0) {
+                                    $rowBayar = mysqli_fetch_assoc($checkPembayaran);
+                                    echo $rowBayar['status_pembayaran'];
+                                  }
+                                  ?></td>
+                              <td>Rp. <?php $no_pemesanan = $row['no_pemesanan'];
+                                      $calculate_pembayaran = "SELECT SUM(kelas.harga_kelas + golongan.harga_golongan) AS total_pembayaran
+                                                                    FROM pemesanan
+                                                                    JOIN golongan ON pemesanan.id_golongan = golongan.id_golongan
+                                                                    JOIN penumpang ON pemesanan.id_penumpang = penumpang.id_penumpang
+                                                                    JOIN kelas ON penumpang.id_kelas = kelas.id_kelas
+                                                                    WHERE pemesanan.no_pemesanan = '$no_pemesanan'";
+                                      $calculatePembayaran = mysqli_query($conn, $calculate_pembayaran);
+                                      $rowCalBayar = mysqli_fetch_assoc($calculatePembayaran);
+                                      $total_pembayaran = $rowCalBayar['total_pembayaran'];
+                                      echo number_format($total_pembayaran);
+                                      ?></td>
                               <td class="d-flex justify-content-center">
                                 <?php if ($role == 3) { ?>
                                   <div class="col">
-                                    <button type="button" class="btn btn-success btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#bayar<?= $row["id_tiket"] ?>">
+                                    <button type="button" class="btn btn-success btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#bayar<?= $row["no_pemesanan"] ?>">
                                       <i class="mdi mdi-cash-multiple"></i> Bayar
                                     </button>
-                                    <div class="modal fade" id="bayar<?= $row["id_tiket"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal fade" id="bayar<?= $row["no_pemesanan"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                       <div class="modal-dialog">
                                         <div class="modal-content">
                                           <div class="modal-header border-bottom-0 shadow">
                                             <h5 class="modal-title" id="exampleModalLabel">Bayar</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                           </div>
-                                          <?php if ($row['status_pembayaran'] == NULL || $row['status_pembayaran'] == "Gagal") { ?>
+                                          <?php
+                                          $action_pembayaran = "SELECT * FROM pembayaran WHERE no_pemesanan='$no_pemesanan'";
+                                          $actionPembayaran = mysqli_query($conn, $action_pembayaran);
+                                          if (mysqli_num_rows($actionPembayaran) == 0) { ?>
                                             <form action="" method="POST" enctype="multipart/form-data">
                                               <div class="modal-body text-center">
-                                                <?php if ($row['status_pembayaran'] == "Gagal") { ?>
-                                                  <p>Bukti pembayaran anda gagal, silakan masukan bukti pembayaran yang<br> semestinya sesuai tiket anda!</p>
-                                                <?php } ?>
-                                                <div class="mb-3 mt-3">
+                                                <div class="mb-3">
+                                                  <label for="id_bank" class="form-label">Bank</label>
+                                                  <select name="id_bank" class="form-select" aria-label="Default select example" required>
+                                                    <option value="" selected>Pilih Bank</option>
+                                                    <?php foreach ($view_account_bank as $row_bank) { ?>
+                                                      <option value="<?= $row_bank['id_bank'] ?>"><?= $row_bank['bank'] . " - " . $row_bank['norek'] . " (" . $row_bank['an'] . ")" ?></option>
+                                                    <?php } ?>
+                                                  </select>
+                                                </div>
+                                                <div class="mb-3">
                                                   <label for="avatar" class="form-label">Upload Bukti Bayar <small class="text-danger">*</small></label>
                                                   <input type="file" name="avatar" value="<?php if (isset($_POST['avatar'])) {
                                                                                             echo $_POST['avatar'];
@@ -105,74 +131,105 @@ $_SESSION["page-url"] = "pembayaran";
                                                 </div>
                                               </div>
                                               <div class="modal-footer justify-content-center border-top-0">
-                                                <input type="hidden" name="id_tiket" value="<?= $row["id_tiket"] ?>">
-                                                <input type="hidden" name="total_bayar" value="<?= $row["harga"] ?>">
+                                                <input type="hidden" name="no_pemesanan" value="<?= $row["no_pemesanan"] ?>">
+                                                <input type="hidden" name="total_bayar" value="<?= $total_pembayaran ?>">
                                                 <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
-                                                <?php if ($row['status_pembayaran'] == "Gagal") { ?>
-                                                  <input type="hidden" name="avatarOld" value="<?= $row["bukti_bayar"] ?>">
-                                                  <button type="submit" name="ubah-pembayaran" class="btn btn-success btn-sm rounded-0 border-0" style="height: 30px;">Bayar Sekarang</button>
-                                                <?php } else { ?>
-                                                  <button type="submit" name="tambah-pembayaran" class="btn btn-success btn-sm rounded-0 border-0" style="height: 30px;">Bayar Sekarang</button>
-                                                <?php } ?>
+                                                <button type="submit" name="tambah-pembayaran" class="btn btn-success btn-sm rounded-0 border-0" style="height: 30px;">Bayar Sekarang</button>
                                               </div>
                                             </form>
-                                          <?php } else if ($row['status_pembayaran'] == "Checking") { ?>
+                                            <?php
+                                          } else if (mysqli_num_rows($actionPembayaran) > 0) {
+                                            $rowAction = mysqli_fetch_assoc($actionPembayaran);
+                                            if ($rowAction['status_pembayaran'] == "Checking") { ?>
+                                              <div class="modal-body text-center">
+                                                <textarea class="form-control border-0 bg-transparent" style="height: 150px;line-height: 25px;font-size: 16px;" readonly>Pembayaran anda saat ini sedang dalam pengecekan petugas, silakan menunggu petugas kami akan mengirimkan notifikasi melalui whatsapp untuk status pembayaran.</textarea>
+                                              </div>
+                                            <?php } else if ($rowAction['status_pembayaran'] == "Gagal") { ?>
+                                              <form action="" method="POST" enctype="multipart/form-data">
+                                                <div class="modal-body text-center">
+                                                  <p>Bukti pembayaran anda gagal, silakan masukan bukti pembayaran yang<br> semestinya sesuai tiket anda!</p>
+                                                  <div class="mb-3">
+                                                    <label for="id_bank" class="form-label">Bank</label>
+                                                    <select name="id_bank" class="form-select" aria-label="Default select example" required>
+                                                      <option value="" selected>Pilih Bank</option>
+                                                      <?php foreach ($view_account_bank as $row_bank) { ?>
+                                                        <option value="<?= $row_bank['id_bank'] ?>"><?= $row_bank['bank'] . " - " . $row_bank['norek'] . " (" . $row_bank['an'] . ")" ?></option>
+                                                      <?php } ?>
+                                                    </select>
+                                                  </div>
+                                                  <div class="mb-3">
+                                                    <label for="avatar" class="form-label">Upload Bukti Bayar <small class="text-danger">*</small></label>
+                                                    <input type="file" name="avatar" value="<?php if (isset($_POST['avatar'])) {
+                                                                                              echo $_POST['avatar'];
+                                                                                            } ?>" class="form-control text-center" id="avatar" placeholder="Upload Bukti Bayar" required>
+                                                  </div>
+                                                </div>
+                                                <div class="modal-footer justify-content-center border-top-0">
+                                                  <input type="hidden" name="id_pembayaran" value="<?= $row["id_pembayaran"] ?>">
+                                                  <input type="hidden" name="total_bayar" value="<?= $total_pembayaran ?>">
+                                                  <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
+                                                  <input type="hidden" name="avatarOld" value="<?= $row["bukti_bayar"] ?>">
+                                                  <button type="submit" name="ubah-pembayaran" class="btn btn-success btn-sm rounded-0 border-0" style="height: 30px;">Bayar Sekarang</button>
+                                                </div>
+                                              </form>
+                                            <?php } else if ($rowAction['status_pembayaran'] == "Diterima") { ?>
+                                              <div class="modal-body text-center">
+                                                Bukti pembayaran anda berhasil diterima dengan baik oleh petugas kami.
+                                              </div>
+                                          <?php }
+                                          } ?>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                <?php } else if ($role <= 2) { ?>
+                                  <div class="col">
+                                    <button type="button" class="btn btn-success btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#bayar<?= $row["id_pembayaran"] ?>">
+                                      <i class="mdi mdi-cash-multiple"></i> Cek Bayar
+                                    </button>
+                                    <div class="modal fade" id="bayar<?= $row["id_pembayaran"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                      <div class="modal-dialog">
+                                        <div class="modal-content">
+                                          <div class="modal-header border-bottom-0 shadow">
+                                            <h5 class="modal-title" id="exampleModalLabel">Bayar</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                          </div>
+                                          <?php if ($row['status_pembayaran'] == "Checking") { ?>
+                                            <form action="" method="POST" enctype="multipart/form-data">
+                                              <div class="modal-body text-center">
+                                                <img src="<?= $row['bukti_bayar'] ?>" style="border-radius: 0;width: 100%;height: 100%;object-fit: cover;" alt="">
+                                                <p>Pembayaran dilakukan via bank: <br><?= $row['bank'] . " - " . $row['norek'] . " (" . $row['an'] . ")" ?></p>
+                                                <div class="mb-3 mt-3">
+                                                  <label for="status_pembayaran" class="form-label">Status Bukti Bayar <small class="text-danger">*</small></label>
+                                                  <select name="status_pembayaran" id="status_pembayaran" class="form-select" aria-label="Default select example" required>
+                                                    <option selected value="">Pilih Status Pembayaran</option>
+                                                    <option value="Diterima">Diterima</option>
+                                                    <option value="Gagal">Gagal</option>
+                                                  </select>
+                                                </div>
+                                              </div>
+                                              <div class="modal-footer justify-content-center border-top-0">
+                                                <input type="hidden" name="id_pembayaran" value="<?= $row["id_pembayaran"] ?>">
+                                                <input type="hidden" name="id_jadwal" value="<?= $row["id_jadwal"] ?>">
+                                                <input type="hidden" name="no_pemesanan" value="<?= $row["no_pemesanan"] ?>">
+                                                <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
+                                                <button type="submit" name="ubah-pembayaran" class="btn btn-success btn-sm rounded-0 border-0" style="height: 30px;">Kirim</button>
+                                              </div>
+                                            </form>
+                                          <?php } else if ($row['status_pembayaran'] == "Gagal") { ?>
                                             <div class="modal-body text-center">
-                                              <textarea class="form-control border-0 bg-transparent" style="height: 150px;line-height: 25px;font-size: 16px;" readonly>Pembayaran anda saat ini sedang dalam pengecekan petugas, silakan menunggu petugas kami akan mengirimkan notifikasi melalui whatsapp untuk status pembayaran.</textarea>
+                                              Bukti pembayaran gagal diterima oleh petugas.
                                             </div>
                                           <?php } else if ($row['status_pembayaran'] == "Diterima") { ?>
                                             <div class="modal-body text-center">
-                                              Bukti pembayaran anda berhasil diterima dengan baik oleh petugas kami.
+                                              Bukti pembayaran berhasil diterima dengan baik oleh petugas.
                                             </div>
                                           <?php } ?>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
-                                  <?php } else if ($role <= 2) {
-                                  if ($row['status_pembayaran'] == "Checking") { ?>
-                                    <div class="col">
-                                      <button type="button" class="btn btn-success btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#bayar<?= $row["id_tiket"] ?>">
-                                        <i class="mdi mdi-cash-multiple"></i> Cek Bayar
-                                      </button>
-                                      <div class="modal fade" id="bayar<?= $row["id_tiket"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                          <div class="modal-content">
-                                            <div class="modal-header border-bottom-0 shadow">
-                                              <h5 class="modal-title" id="exampleModalLabel">Bayar</h5>
-                                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <?php if ($row['status_pembayaran'] == "Checking") { ?>
-                                              <form action="" method="POST" enctype="multipart/form-data">
-                                                <div class="modal-body text-center">
-                                                  <img src="<?= $row['bukti_bayar'] ?>" style="border-radius: 0;width: 100%;height: 100%;object-fit: cover;" alt="">
-                                                  <div class="mb-3 mt-3">
-                                                    <label for="status_pembayaran" class="form-label">Status Bukti Bayar <small class="text-danger">*</small></label>
-                                                    <select name="status_pembayaran" id="status_pembayaran" class="form-select" aria-label="Default select example" required>
-                                                      <option selected value="">Pilih Status Pembayaran</option>
-                                                      <option value="Diterima">Diterima</option>
-                                                      <option value="Gagal">Gagal</option>
-                                                    </select>
-                                                  </div>
-                                                </div>
-                                                <div class="modal-footer justify-content-center border-top-0">
-                                                  <input type="hidden" name="id_tiket" value="<?= $row["id_tiket"] ?>">
-                                                  <input type="hidden" name="nomor_telepon" value="<?= $row["nomor_telepon"] ?>">
-                                                  <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
-                                                  <button type="submit" name="ubah-tiket" class="btn btn-success btn-sm rounded-0 border-0" style="height: 30px;">Kirim</button>
-                                                </div>
-                                              </form>
-                                            <?php } else if ($row['status_pembayaran'] == "Diterima") { ?>
-                                              <div class="modal-body text-center">
-                                                Bukti pembayaran berhasil diterima dengan baik oleh petugas.
-                                              </div>
-                                            <?php } ?>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                <?php }
-                                } ?>
+                                <?php } ?>
                               </td>
                             </tr>
                         <?php $no++;
