@@ -2,12 +2,13 @@
 
 // Query untuk mengambil data penduduk berdasarkan jenis kelamin dalam satu tahun (misalnya tahun 2023)
 $year = date('Y');
-$sql = "SELECT jk.jenis_kelamin, MONTH(tiket.tgl_jalan) AS bulan, COUNT(*) AS total 
+$sql = "SELECT jk.jenis_kelamin, MONTH(jadwal.tanggal_berangkat) AS bulan, COUNT(*) AS total 
         FROM penumpang 
         JOIN jk ON penumpang.id_jk=jk.id_jk 
         JOIN tiket ON penumpang.id_penumpang=tiket.id_penumpang 
-        WHERE YEAR(tiket.tgl_jalan) = '$year' 
-        GROUP BY jk.jenis_kelamin, MONTH(tiket.tgl_jalan) 
+        JOIN jadwal ON tiket.id_jadwal=jadwal.id_jadwal 
+        WHERE YEAR(jadwal.tanggal_berangkat) = '$year' 
+        GROUP BY jk.jenis_kelamin, MONTH(jadwal.tanggal_berangkat) 
         ORDER BY jk.jenis_kelamin";
 $result = mysqli_query($conn, $sql);
 

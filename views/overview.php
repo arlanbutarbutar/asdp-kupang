@@ -150,7 +150,7 @@
               function getDataFromDB()
               {
                 global $conn;
-                $sql = 'SELECT kapal.nama_kapal, COUNT(*) AS total FROM pelayaran JOIN jadwal ON pelayaran.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN tiket ON pelayaran.id_pelayaran=tiket.id_pelayaran JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang GROUP BY kapal.nama_kapal';
+                $sql = 'SELECT kapal.nama_kapal, COUNT(*) AS total FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang GROUP BY kapal.nama_kapal';
                 $result = mysqli_query($conn, $sql);
 
                 $data = array();
@@ -170,7 +170,7 @@
               $data = getDataFromDB();
               ?>
 
-              <!-- <script>
+              <script>
                 // Data jumlah penumpang dari PHP
                 var data = <?php echo json_encode(array_column($data, 'jumlah_penumpang')); ?>;
                 // Nama kapal dari PHP
@@ -210,7 +210,7 @@
                   }
                   return colors;
                 }
-              </script> -->
+              </script>
             </div>
           </div>
         </div>

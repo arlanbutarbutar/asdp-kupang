@@ -423,7 +423,7 @@ if (isset($_SESSION["data-user"])) {
                 WHERE pemesanan.id_user='$idUser'";
     $view_tiket = mysqli_query($conn, $tiket);
 
-    $pembayaran = "SELECT * FROM pemesanan JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal WHERE pemesanan.id_user='$idUser' AND jadwal.tanggal_berangkat > CURDATE() AND jadwal.jam_berangkat > CURTIME() GROUP BY pemesanan.no_pemesanan";
+    $pembayaran = "SELECT * FROM pemesanan JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal WHERE pemesanan.id_user='$idUser' AND jadwal.tanggal_berangkat > CURDATE() OR jadwal.jam_berangkat > CURTIME() GROUP BY pemesanan.no_pemesanan";
     $view_pembayaran = mysqli_query($conn, $pembayaran);
     if (isset($_POST["tambah-pembayaran"])) {
       if (pembayaran($conn, $_POST, $action = "insert", $baseURL, $idUser) > 0) {
