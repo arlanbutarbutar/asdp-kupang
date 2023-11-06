@@ -25,7 +25,7 @@ if (isset($_SESSION["time-message"])) {
   }
 }
 
-$baseURL = "http://$_SERVER[HTTP_HOST]/apps/asdp-kupang/";
+$baseURL = "http://$_SERVER[HTTP_HOST]/asdp-kupang/";
 
 $jk = "SELECT * FROM jk";
 $selectJK = mysqli_query($conn, $jk);
@@ -50,7 +50,7 @@ $informasi = "SELECT * FROM informasi";
 $front_informasi = mysqli_query($conn, $informasi);
 
 if (isset($_POST["daftar-pelayaran"])) {
-  if (daftar_pelayaran($conn, $_POST) > 0) {
+  if (daftar_pelayaran($conn, $_POST, $baseURL) > 0) {
     unset($_SESSION['redirect']);
     header("Location: auth/");
     exit();
@@ -65,7 +65,7 @@ if (isset($_POST["verifikasi"])) {
 
 if (!isset($_SESSION["data-user"])) {
   if (isset($_POST["daftar"])) {
-    if (daftar($conn, $_POST) > 0) {
+    if (daftar($conn, $_POST, $baseURL) > 0) {
       $_SESSION["message-success"] = "Akun telah terdaftar, silakan cek email anda untuk memverifikasi akun.";
       $_SESSION["time-message"] = time();
       header("Location: verification");
@@ -383,7 +383,7 @@ if (isset($_SESSION["data-user"])) {
     $pembayaran = "SELECT pembayaran.*, penumpang.nama, golongan.nama_golongan, jk.jenis_kelamin, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, pemesanan.no_pemesanan, account_bank.an, account_bank.bank, account_bank.norek, jadwal.id_jadwal FROM pembayaran JOIN pemesanan ON pembayaran.no_pemesanan=pemesanan.no_pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN jk ON penumpang.id_jk=jk.id_jk JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN account_bank ON pembayaran.id_bank=account_bank.id_bank GROUP BY pemesanan.no_pemesanan";
     $view_pembayaran = mysqli_query($conn, $pembayaran);
     if (isset($_POST["ubah-pembayaran"])) {
-      if (pembayaran_checking($conn, $_POST, $action = "update", $nomor_telepon) > 0) {
+      if (pembayaran_checking($conn, $_POST, $action = "update", $nomor_telepon, $baseURL) > 0) {
         $_SESSION["message-success"] = "Data status pembayaran berhasil diubah.";
         $_SESSION["time-message"] = time();
         header("Location: pembayaran");

@@ -51,6 +51,7 @@ $_SESSION["page-url"] = "golongan";
                           <th scope="col" class="text-center">#</th>
                           <th scope="col" class="text-center">Nama Golongan</th>
                           <th scope="col" class="text-center">Harga</th>
+                          <th scope="col" class="text-center">Keterangan</th>
                           <th scope="col" class="text-center">Aksi</th>
                         </tr>
                       </thead>
@@ -62,6 +63,7 @@ $_SESSION["page-url"] = "golongan";
                               <th scope="row" class="text-center"><?= $no; ?></th>
                               <td><?= $row['nama_golongan'] ?></td>
                               <td>Rp. <?= number_format($row['harga_golongan']) ?></td>
+                              <td><?= $row['keterangan'] ?></td>
                               <td class="d-flex justify-content-center">
                                 <div class="col">
                                   <button type="button" class="btn btn-warning btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#ubah<?= $row["id_golongan"] ?>">
@@ -87,18 +89,25 @@ $_SESSION["page-url"] = "golongan";
                                             <div class="mb-3">
                                               <label for="harga_golongan" class="form-label">Harga <small class="text-danger">*</small></label>
                                               <input type="number" name="harga_golongan" value="<?php if (isset($_POST['harga_golongan'])) {
-                                                                                          echo $_POST['harga_golongan'];
-                                                                                        } else {
-                                                                                          echo $row['harga_golongan'];
-                                                                                        } ?>" class="form-control text-center" id="harga_golongan" placeholder="Harga" required>
+                                                                                                  echo $_POST['harga_golongan'];
+                                                                                                } else {
+                                                                                                  echo $row['harga_golongan'];
+                                                                                                } ?>" class="form-control text-center" id="harga_golongan" placeholder="Harga" required>
                                             </div>
-                                          </div>
-                                          <div class="modal-footer justify-content-center border-top-0">
-                                            <input type="hidden" name="id_golongan" value="<?= $row["id_golongan"] ?>">
-                                            <input type="hidden" name="nama_golonganOld" value="<?= $row["nama_golongan"] ?>">
-                                            <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
-                                            <button type="submit" name="ubah-golongan" class="btn btn-warning btn-sm rounded-0 border-0" style="height: 30px;">Ubah</button>
-                                          </div>
+                                            <div class="mb-3">
+                                              <label for="keterangan" class="form-label">Keterangan <small class="text-danger">*</small></label>
+                                              <textarea name="keterangan" class="form-control" id="exampleFormControlTextarea1" rows="3" style="height: 100px;"><?php if (isset($_POST['keterangan'])) {
+                                                                                                                                            echo $_POST['keterangan'];
+                                                                                                                                          } else {
+                                                                                                                                            echo $row['keterangan'];
+                                                                                                                                          } ?></textarea>
+                                            </div>
+                                            <div class="modal-footer justify-content-center border-top-0">
+                                              <input type="hidden" name="id_golongan" value="<?= $row["id_golongan"] ?>">
+                                              <input type="hidden" name="nama_golonganOld" value="<?= $row["nama_golongan"] ?>">
+                                              <button type="button" class="btn btn-secondary btn-sm rounded-0 border-0" style="height: 30px;" data-bs-dismiss="modal">Batal</button>
+                                              <button type="submit" name="ubah-golongan" class="btn btn-warning btn-sm rounded-0 border-0" style="height: 30px;">Ubah</button>
+                                            </div>
                                         </form>
                                       </div>
                                     </div>
@@ -155,14 +164,20 @@ $_SESSION["page-url"] = "golongan";
                   <div class="mb-3">
                     <label for="nama_golongan" class="form-label">Nama Golongan <small class="text-danger">*</small></label>
                     <input type="text" name="nama_golongan" value="<?php if (isset($_POST['nama_golongan'])) {
-                                                                  echo $_POST['nama_golongan'];
-                                                                } ?>" class="form-control text-center" id="nama_golongan" minlength="3" placeholder="Nama Golongan" required>
+                                                                      echo $_POST['nama_golongan'];
+                                                                    } ?>" class="form-control text-center" id="nama_golongan" minlength="3" placeholder="Nama Golongan" required>
                   </div>
                   <div class="mb-3">
                     <label for="harga_golongan" class="form-label">Harga <small class="text-danger">*</small></label>
                     <input type="number" name="harga_golongan" value="<?php if (isset($_POST['harga_golongan'])) {
-                                                                echo $_POST['harga_golongan'];
-                                                              } ?>" class="form-control text-center" id="harga_golongan" placeholder="Harga" required>
+                                                                        echo $_POST['harga_golongan'];
+                                                                      } ?>" class="form-control text-center" id="harga_golongan" placeholder="Harga" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="keterangan" class="form-label">Keterangan <small class="text-danger">*</small></label>
+                    <textarea name="keterangan" class="form-control" id="exampleFormControlTextarea1" rows="3" style="height: 100px;"><?php if (isset($_POST['keterangan'])) {
+                                                                                                                  echo $_POST['keterangan'];
+                                                                                                                } ?></textarea>
                   </div>
                 </div>
                 <div class="modal-footer border-top-0 justify-content-center">

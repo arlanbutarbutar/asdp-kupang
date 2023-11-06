@@ -147,6 +147,8 @@ $_SESSION["page-url"] = "pelayaran";
                 <img src="<?= $row['img_kapal'] ?>" class="card-img-top" alt="<?= $row['nama_kapal'] ?>">
                 <h5 class="card-title-custom"><?= $row['nama_kapal'] ?></h5>
                 <div class="card-body" style="margin-top: 40px;">
+                  <p>Jadwal <strong><?php $tgl = date_create($row["tanggal_berangkat"]);
+                                    echo date_format($tgl, "d M Y") . " - " . $row['jam_berangkat']; ?></strong></p>
                   <a href="pelayaran?select=<?= $row['id_jadwal'] ?>" class="btn btn-primary btn-sm rounded-0 text-white">Pilih Kapal</a>
                 </div>
               </div>
@@ -239,7 +241,28 @@ $_SESSION["page-url"] = "pelayaran";
                                       <option value="<?= $row_gol['id_golongan'] ?>"><?= $row_gol['nama_golongan'] . " Rp. " . number_format($row_gol['harga_golongan']) ?></option>
                                     <?php } ?>
                                   </select>
+                                  <small id="golongan-info"></small>
                                 </div>
+                                <!-- Buat objek JavaScript untuk menyimpan data tambahan -->
+                                <script>
+                                  var golonganData = {
+                                    <?php foreach ($selectGol as $row_gol) { ?>
+                                      <?= $row_gol['id_golongan'] ?>: "<?= $row_gol['keterangan'] ?>",
+                                    <?php } ?>
+                                  };
+
+                                  // Ambil elemen select dan small
+                                  var select = document.getElementById('id_golongan');
+                                  var infoSmall = document.getElementById('golongan-info');
+
+                                  // Tambahkan event listener untuk mengubah keterangan saat memilih opsi
+                                  select.addEventListener('change', function() {
+                                    var selectedOption = select.options[select.selectedIndex];
+                                    var selectedId = selectedOption.value;
+                                    var selectedData = golonganData[selectedId];
+                                    infoSmall.textContent = "Keterangan: " + selectedData;
+                                  });
+                                </script>
                                 <hr>
                                 <p class="text-success">Masukan nomor handphone anda disini untuk melanjutkan pembayaran.</p>
                                 <div class="form-group">

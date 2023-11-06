@@ -35,7 +35,7 @@ function generateRandomCode($length = 6)
   }
   return $code;
 }
-function daftar_pelayaran($conn, $data)
+function daftar_pelayaran($conn, $data, $baseURL)
 {
   $checkPenumpang = mysqli_query($conn, "SELECT * FROM penumpang ORDER BY id_penumpang DESC LIMIT 1");
   if (mysqli_num_rows($checkPenumpang) > 0) {
@@ -74,7 +74,7 @@ function daftar_pelayaran($conn, $data)
 
       // Send to Whatsapp
       $target = $nomor_telepon;
-      $pesan = "Terima kasih telah memesan tiket perjalanan dari ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk proses pembayaran: http://127.0.0.1:1010/apps/asdp-kupang/auth/index?tlpn=$nomor_tlpn";
+      $pesan = "Terima kasih telah memesan tiket perjalanan dari ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk proses pembayaran: " . $baseURL . "auth/index?tlpn=$nomor_tlpn";
       WAAPI($target, $pesan);
 
       return mysqli_affected_rows($conn);
@@ -98,7 +98,7 @@ function daftar_pelayaran($conn, $data)
 
     // Send to Whatsapp
     $target = $nomor_telepon;
-    $pesan = "Terima kasih telah memesan tiket perjalanan dari ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk memverifikasi akun: http://127.0.0.1:1010/apps/asdp-kupang/auth/verification?en=$en_user";
+    $pesan = "Terima kasih telah memesan tiket perjalanan dari ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk memverifikasi akun: " . $baseURL . "auth/verification?en=$en_user";
     WAAPI($target, $pesan);
 
     unset($_SESSION['redirect']);
@@ -138,7 +138,7 @@ function daftar_pelayaran_approve($conn, $data)
   return mysqli_affected_rows($conn);
 }
 if (!isset($_SESSION["data-user"])) {
-  function daftar($conn, $data)
+  function daftar($conn, $data, $baseURL)
   {
     $nama = valid($conn, $data["nama"]);
     $nomor_telepon = valid($conn, $data["nomor_telepon"]);
@@ -171,7 +171,7 @@ if (!isset($_SESSION["data-user"])) {
 
     // Send to Whatsapp
     $target = $nomor_telepon;
-    $pesan = "Akun anda telah terdaftar di sistem ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk memverifikasi akun: http://127.0.0.1:1010/apps/asdp-kupang/auth/verification?en=$en_user";
+    $pesan = "Akun anda telah terdaftar di sistem ASDP Cabang Kupang. Untuk melanjutkan silakan klik link berikut untuk memverifikasi akun: " . $baseURL . "auth/verification?en=$en_user";
     WAAPI($target, $pesan);
 
     return mysqli_affected_rows($conn);
@@ -360,6 +360,7 @@ if (isset($_SESSION["data-user"])) {
   {
     $nama_golongan = valid($conn, $data['nama_golongan']);
     $harga_golongan = valid($conn, $data['harga_golongan']);
+    $keterangan = valid($conn, $data['keterangan']);
 
     if ($action == "insert") {
       $golongan = "SELECT * FROM golongan WHERE nama_golongan='$nama_golongan'";
@@ -369,7 +370,7 @@ if (isset($_SESSION["data-user"])) {
         $_SESSION["time-message"] = time();
         return false;
       } else {
-        $sql = "INSERT INTO golongan(nama_golongan,harga_golongan) VALUES('$nama_golongan','$harga_golongan')";
+        $sql = "INSERT INTO golongan(nama_golongan,harga_golongan,keterangan) VALUES('$nama_golongan','$harga_golongan','$keterangan')";
       }
     }
 
@@ -385,7 +386,7 @@ if (isset($_SESSION["data-user"])) {
           return false;
         }
       }
-      $sql = "UPDATE golongan SET nama_golongan='$nama_golongan', harga_golongan='$harga_golongan' WHERE id_golongan='$id_golongan'";
+      $sql = "UPDATE golongan SET nama_golongan='$nama_golongan', harga_golongan='$harga_golongan', keterangan='$keterangan' WHERE id_golongan='$id_golongan'";
     }
 
     if ($action == "delete") {
@@ -729,7 +730,7 @@ if (isset($_SESSION["data-user"])) {
 
     return mysqli_affected_rows($conn);
   }
-  function pembayaran_checking($conn, $data, $action, $nomor_telepon)
+  function pembayaran_checking($conn, $data, $action, $nomor_telepon, $baseURL)
   {
     $status_pembayaran = valid($conn, $data['status_pembayaran']);
 
@@ -741,11 +742,11 @@ if (isset($_SESSION["data-user"])) {
       $id_jadwal = valid($conn, $data['id_jadwal']);
       $no_pemesanan = valid($conn, $data['no_pemesanan']);
       if ($status_pembayaran == "Gagal") {
-        $pesan = "Maaf pembayaran gagal diterima, silakan masukan bukti pembayaran yang semestinya sesuai tiket anda!. Lihat tiket kamu disini👉 http://127.0.0.1:1010/apps/asdp-kupang/views/tiket";
+        $pesan = "Maaf pembayaran gagal diterima, silakan masukan bukti pembayaran yang semestinya sesuai tiket anda!. Lihat tiket kamu disini👉 " . $baseURL . "views/tiket";
         $sql = "UPDATE pembayaran SET status_pembayaran='$status_pembayaran' WHERE id_pembayaran='$id_pembayaran'";
         mysqli_query($conn, $sql);
       } else if ($status_pembayaran == "Diterima") {
-        $pesan = "Selamat pembayaran berhasil, bukti pembayaran anda berhasil diterima dengan baik oleh petugas kami. Silakan masuk ke akun kamu dan tunjukan tiket saat ingin memasuki kapal. Lihat tiket kamu disini👉 http://127.0.0.1:1010/apps/asdp-kupang/views/tiket";
+        $pesan = "Selamat pembayaran berhasil, bukti pembayaran anda berhasil diterima dengan baik oleh petugas kami. Silakan masuk ke akun kamu dan tunjukan tiket saat ingin memasuki kapal. Lihat tiket kamu disini👉 " . $baseURL . "views/tiket";
         $sql = "UPDATE pembayaran SET status_pembayaran='$status_pembayaran' WHERE id_pembayaran='$id_pembayaran'";
         mysqli_query($conn, $sql);
         $pemesanan = "SELECT * FROM pemesanan JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang WHERE pemesanan.no_pemesanan='$no_pemesanan' AND pemesanan.id_status=1";
