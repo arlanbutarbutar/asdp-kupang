@@ -11,7 +11,7 @@ if (!isset($_SESSION['redirect'])) {
            JOIN rute ON jadwal.id_rute = rute.id_rute 
            WHERE rute.pelabuhan_asal = '$pelabuhan_asal' 
            AND rute.pelabuhan_tujuan = '$pelabuhan_tujuan'
-           AND CONCAT(jadwal.tanggal_berangkat, ' ', jadwal.jam_berangkat) > '$sekarang'";
+           AND jadwal.tanggal_berangkat > CURDATE() OR (jadwal.tanggal_berangkat = CURDATE() AND jadwal.jam_berangkat > CURTIME())";
   $front_jadwal = mysqli_query($conn, $jadwal);
 }
 $_SESSION["page-name"] = "Pelayaran";
@@ -149,7 +149,40 @@ $_SESSION["page-url"] = "pelayaran";
                 <div class="card-body" style="margin-top: 40px;">
                   <p>Jadwal <strong><?php $tgl = date_create($row["tanggal_berangkat"]);
                                     echo date_format($tgl, "d M Y") . " - " . $row['jam_berangkat']; ?></strong></p>
-                  <a href="pelayaran?select=<?= $row['id_jadwal'] ?>" class="btn btn-primary btn-sm rounded-0 text-white">Pilih Kapal</a>
+                  <?php $date_now = date("Y-m-d");
+                  if ($date_now == $row["tanggal_berangkat"]) {
+                    $jam_berangkat_database = $row['jam_berangkat'];
+                    $timestamp_jam_berangkat = strtotime($jam_berangkat_database);
+                    $timestamp_limit = $timestamp_jam_berangkat - (3 * 3600);
+                    $time_limit = date('H:i:s', $timestamp_limit);
+                    $timestamp_sekarang = time();
+                    if ($timestamp_limit > $timestamp_sekarang) {
+                      $href = "#";
+                      $data_modal = 'data-toggle="modal" data-target="#limit' . $row['id_jadwal'] . '"';
+                    } else {
+                      $href = "pelayaran?select=" . $row['id_jadwal'];
+                      $data_modal = "";
+                    }
+                  } else {
+                    $href = "pelayaran?select=" . $row['id_jadwal'];
+                    $data_modal = "";
+                  } ?>
+                  <a href="<?= $href ?>" class="btn btn-primary btn-sm rounded-0 text-white" <?= $data_modal ?>>Pilih Kapal</a>
+                </div>
+              </div>
+            </div>
+            <div class="modal fade border-0" id="limit<?= $row['id_jadwal'] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header border-bottom-0 shadow">
+                    <h5 class="modal-title" id="exampleModalLabel"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Maaf jadwal kapal <?= $row['nama_kapal'] ?> sudah tidak dapat dipesan.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -232,37 +265,37 @@ $_SESSION["page-url"] = "pelayaran";
                                     <label for="alamat">Alamat <span class="text-danger">*</span></label>
                                     <input type="text" name="alamat[]" id="alamat" class="form-control text-center" placeholder="Alamat" required>
                                   </div>
+                                  <div class="form-group">
+                                    <label for="id_golongan">Golongan <span class="text-danger">*</span></label>
+                                    <select name="id_golongan[]" id="id_golongan<?= $pess ?>" class="form-control" aria-label="Default select example" required>
+                                      <option selected value="">Pilih Golongan</option>
+                                      <?php foreach ($selectGol as $row_gol) { ?>
+                                        <option value="<?= $row_gol['id_golongan'] ?>"><?= $row_gol['nama_golongan'] . " Rp. " . number_format($row_gol['harga_golongan']) ?></option>
+                                      <?php } ?>
+                                    </select>
+                                    <small id="golongan-info<?= $pess ?>"></small>
+                                  </div>
+                                  <!-- Buat objek JavaScript untuk menyimpan data tambahan -->
+                                  <script>
+                                    var golonganData = {
+                                      <?php foreach ($selectGol as $row_gol) { ?>
+                                        <?= $row_gol['id_golongan'] ?>: "<?= $row_gol['keterangan'] ?>",
+                                      <?php } ?>
+                                    };
+
+                                    // Ambil elemen select dan small
+                                    var select<?= $pess ?> = document.getElementById('id_golongan<?= $pess ?>');
+                                    var infoSmall<?= $pess ?> = document.getElementById('golongan-info<?= $pess ?>');
+
+                                    // Tambahkan event listener untuk mengubah keterangan saat memilih opsi
+                                    select<?= $pess ?>.addEventListener('change', function() {
+                                      var selectedOption = select<?= $pess ?>.options[select<?= $pess ?>.selectedIndex];
+                                      var selectedId = selectedOption.value;
+                                      var selectedData = golonganData[selectedId];
+                                      infoSmall<?= $pess ?>.textContent = "Keterangan: " + selectedData;
+                                    });
+                                  </script>
                                 <?php } ?>
-                                <div class="form-group">
-                                  <label for="id_golongan">Golongan <span class="text-danger">*</span></label>
-                                  <select name="id_golongan" id="id_golongan" class="form-control" aria-label="Default select example" required>
-                                    <option selected value="">Pilih Golongan</option>
-                                    <?php foreach ($selectGol as $row_gol) { ?>
-                                      <option value="<?= $row_gol['id_golongan'] ?>"><?= $row_gol['nama_golongan'] . " Rp. " . number_format($row_gol['harga_golongan']) ?></option>
-                                    <?php } ?>
-                                  </select>
-                                  <small id="golongan-info"></small>
-                                </div>
-                                <!-- Buat objek JavaScript untuk menyimpan data tambahan -->
-                                <script>
-                                  var golonganData = {
-                                    <?php foreach ($selectGol as $row_gol) { ?>
-                                      <?= $row_gol['id_golongan'] ?>: "<?= $row_gol['keterangan'] ?>",
-                                    <?php } ?>
-                                  };
-
-                                  // Ambil elemen select dan small
-                                  var select = document.getElementById('id_golongan');
-                                  var infoSmall = document.getElementById('golongan-info');
-
-                                  // Tambahkan event listener untuk mengubah keterangan saat memilih opsi
-                                  select.addEventListener('change', function() {
-                                    var selectedOption = select.options[select.selectedIndex];
-                                    var selectedId = selectedOption.value;
-                                    var selectedData = golonganData[selectedId];
-                                    infoSmall.textContent = "Keterangan: " + selectedData;
-                                  });
-                                </script>
                                 <hr>
                                 <p class="text-success">Masukan nomor handphone anda disini untuk melanjutkan pembayaran.</p>
                                 <div class="form-group">

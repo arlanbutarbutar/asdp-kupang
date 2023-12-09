@@ -3,6 +3,7 @@
 }
 error_reporting(~E_NOTICE & ~E_DEPRECATED);
 require_once("db_connect.php");
+require_once("time.php");
 require_once("functions.php");
 if (isset($_SESSION["time-message"])) {
   if ((time() - $_SESSION["time-message"]) > 2) {
@@ -25,7 +26,7 @@ if (isset($_SESSION["time-message"])) {
   }
 }
 
-$baseURL = "http://$_SERVER[HTTP_HOST]/asdp-kupang/";
+$baseURL = "http://$_SERVER[HTTP_HOST]/apps/asdp-kupang/";
 
 $jk = "SELECT * FROM jk";
 $selectJK = mysqli_query($conn, $jk);
@@ -50,7 +51,7 @@ $informasi = "SELECT * FROM informasi";
 $front_informasi = mysqli_query($conn, $informasi);
 
 if (isset($_POST["daftar-pelayaran"])) {
-  if (daftar_pelayaran($conn, $_POST, $baseURL) > 0) {
+  if (daftar_pelayaran($conn, $_POST, $baseURL, $time) > 0) {
     unset($_SESSION['redirect']);
     header("Location: auth/");
     exit();
@@ -365,7 +366,7 @@ if (isset($_SESSION["data-user"])) {
   }
 
   if ($role <= 2) {
-    $pemesanan = "SELECT pemesanan.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.img_kapal, kapal.nama_kapal, kapal.kapasitas, kapal.jenis_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak, penumpang.nama, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, jk.jenis_kelamin, golongan.nama_golongan, golongan.harga_golongan FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN jk ON penumpang.id_jk=jk.id_jk";
+    $pemesanan = "SELECT pemesanan.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.img_kapal, kapal.nama_kapal, kapal.kapasitas, kapal.jenis_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak, penumpang.nama, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, jk.jenis_kelamin, golongan.nama_golongan, golongan.harga_golongan FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN golongan ON penumpang.id_golongan=golongan.id_golongan JOIN jk ON penumpang.id_jk=jk.id_jk";
     $view_pemesanan = mysqli_query($conn, $pemesanan);
 
     $tiket = "SELECT tiket.*, penumpang.nama, penumpang.umur, penumpang.alamat, jk.jenis_kelamin, kelas.nama_kelas, golongan.nama_golongan, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.nama_kapal, kapal.jenis_kapal, rute.cabang, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak 
@@ -374,13 +375,13 @@ if (isset($_SESSION["data-user"])) {
     JOIN kelas ON penumpang.id_kelas=kelas.id_kelas
     JOIN jk ON penumpang.id_jk=jk.id_jk
     JOIN pemesanan ON penumpang.id_penumpang=pemesanan.id_penumpang 
-    JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan
+    JOIN golongan ON penumpang.id_golongan=golongan.id_golongan
     JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal 
     JOIN kapal ON jadwal.id_kapal=kapal.id_kapal 
     JOIN rute ON jadwal.id_rute=rute.id_rute";
     $view_tiket = mysqli_query($conn, $tiket);
 
-    $pembayaran = "SELECT pembayaran.*, penumpang.nama, golongan.nama_golongan, jk.jenis_kelamin, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, pemesanan.no_pemesanan, account_bank.an, account_bank.bank, account_bank.norek, jadwal.id_jadwal FROM pembayaran JOIN pemesanan ON pembayaran.no_pemesanan=pemesanan.no_pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN jk ON penumpang.id_jk=jk.id_jk JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN account_bank ON pembayaran.id_bank=account_bank.id_bank GROUP BY pemesanan.no_pemesanan";
+    $pembayaran = "SELECT pembayaran.*, penumpang.nama, golongan.nama_golongan, jk.jenis_kelamin, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, pemesanan.no_pemesanan, account_bank.an, account_bank.bank, account_bank.norek, jadwal.id_jadwal FROM pembayaran JOIN pemesanan ON pembayaran.no_pemesanan=pemesanan.no_pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN jk ON penumpang.id_jk=jk.id_jk JOIN golongan ON penumpang.id_golongan=golongan.id_golongan JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN account_bank ON pembayaran.id_bank=account_bank.id_bank GROUP BY pemesanan.no_pemesanan";
     $view_pembayaran = mysqli_query($conn, $pembayaran);
     if (isset($_POST["ubah-pembayaran"])) {
       if (pembayaran_checking($conn, $_POST, $action = "update", $nomor_telepon, $baseURL) > 0) {
@@ -407,7 +408,7 @@ if (isset($_SESSION["data-user"])) {
     $count_tiket = mysqli_query($conn, $count_tiket);
     $countTiket = mysqli_num_rows($count_tiket);
   } else if ($role == 3) {
-    $pemesanan = "SELECT pemesanan.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.img_kapal, kapal.nama_kapal, kapal.kapasitas, kapal.jenis_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak, penumpang.nama, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, jk.jenis_kelamin, golongan.nama_golongan, golongan.harga_golongan FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN jk ON penumpang.id_jk=jk.id_jk WHERE pemesanan.id_user='$idUser'";
+    $pemesanan = "SELECT pemesanan.*, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.img_kapal, kapal.nama_kapal, kapal.kapasitas, kapal.jenis_kapal, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak, penumpang.nama, penumpang.umur, penumpang.alamat, kelas.nama_kelas, kelas.harga_kelas, jk.jenis_kelamin, golongan.nama_golongan, golongan.harga_golongan FROM pemesanan JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal JOIN kapal ON jadwal.id_kapal=kapal.id_kapal JOIN rute ON jadwal.id_rute=rute.id_rute JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN golongan ON penumpang.id_golongan=golongan.id_golongan JOIN jk ON penumpang.id_jk=jk.id_jk WHERE pemesanan.id_user='$idUser'";
     $view_pemesanan = mysqli_query($conn, $pemesanan);
 
     $tiket = "SELECT tiket.*, penumpang.nama, penumpang.umur, penumpang.alamat, jk.jenis_kelamin, kelas.nama_kelas, golongan.nama_golongan, jadwal.tanggal_berangkat, jadwal.jam_berangkat, kapal.nama_kapal, kapal.jenis_kapal, rute.cabang, rute.pelabuhan_asal, rute.pelabuhan_tujuan, rute.jarak 
@@ -416,14 +417,14 @@ if (isset($_SESSION["data-user"])) {
                 JOIN kelas ON penumpang.id_kelas=kelas.id_kelas
                 JOIN jk ON penumpang.id_jk=jk.id_jk
                 JOIN pemesanan ON penumpang.id_penumpang=pemesanan.id_penumpang 
-                JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan
+                JOIN golongan ON penumpang.id_golongan=golongan.id_golongan
                 JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal 
                 JOIN kapal ON jadwal.id_kapal=kapal.id_kapal 
                 JOIN rute ON jadwal.id_rute=rute.id_rute 
                 WHERE pemesanan.id_user='$idUser'";
     $view_tiket = mysqli_query($conn, $tiket);
 
-    $pembayaran = "SELECT * FROM pemesanan JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal WHERE pemesanan.id_user='$idUser' AND jadwal.tanggal_berangkat > CURDATE() OR jadwal.jam_berangkat > CURTIME() GROUP BY pemesanan.no_pemesanan";
+    $pembayaran = "SELECT * FROM pemesanan JOIN penumpang ON pemesanan.id_penumpang=penumpang.id_penumpang JOIN golongan ON penumpang.id_golongan=golongan.id_golongan JOIN kelas ON penumpang.id_kelas=kelas.id_kelas JOIN jadwal ON pemesanan.id_jadwal=jadwal.id_jadwal WHERE pemesanan.id_user='$idUser' AND jadwal.tanggal_berangkat > CURDATE() OR jadwal.jam_berangkat > CURTIME() GROUP BY pemesanan.no_pemesanan";
     $view_pembayaran = mysqli_query($conn, $pembayaran);
     if (isset($_POST["tambah-pembayaran"])) {
       if (pembayaran($conn, $_POST, $action = "insert", $baseURL, $idUser) > 0) {
@@ -445,8 +446,8 @@ if (isset($_SESSION["data-user"])) {
     $overview = "SELECT * FROM tiket 
              JOIN penumpang ON tiket.id_penumpang=penumpang.id_penumpang 
              JOIN kelas ON penumpang.id_kelas=kelas.id_kelas 
+             JOIN golongan ON penumpang.id_golongan=golongan.id_golongan 
              JOIN pemesanan ON penumpang.id_penumpang=pemesanan.id_penumpang 
-             JOIN golongan ON pemesanan.id_golongan=golongan.id_golongan 
              JOIN pembayaran ON pemesanan.no_pemesanan=pembayaran.no_pemesanan
              JOIN jadwal ON pemesanan.id_jadwal = jadwal.id_jadwal 
              JOIN kapal ON jadwal.id_kapal = kapal.id_kapal 

@@ -1,4 +1,9 @@
 <?php require_once("support_code.php");
+function hitungWaktuExpired($tanggalPembelian)
+{
+  $waktuKedaluwarsa = strtotime($tanggalPembelian) + (30 * 60); // 30 menit dalam detik
+  return date('Y-m-d\TH:i:s', $waktuKedaluwarsa);
+}
 function WAAPI($target, $pesan, $token = "P2eS-zGGpJJPjwI8UnC1")
 {
   $curl = curl_init();
@@ -35,7 +40,7 @@ function generateRandomCode($length = 6)
   }
   return $code;
 }
-function daftar_pelayaran($conn, $data, $baseURL)
+function daftar_pelayaran($conn, $data, $baseURL, $time)
 {
   $checkPenumpang = mysqli_query($conn, "SELECT * FROM penumpang ORDER BY id_penumpang DESC LIMIT 1");
   if (mysqli_num_rows($checkPenumpang) > 0) {
@@ -49,10 +54,11 @@ function daftar_pelayaran($conn, $data, $baseURL)
   $id_jk = $data['id_jk'];
   $umur = $data['umur'];
   $alamat = $data['alamat'];
-  $id_golongan = valid($conn, $data['id_golongan']);
+  $id_golongan = $data['id_golongan'];
   $nomor_telepon = valid($conn, $data['nomor_telepon']);
   $id_jadwal = valid($conn, $data['id_jadwal']);
   $no_pemesanan = generateRandomCode(6);
+  $tgl_pesan = date("Y-m-d " . $time);
 
   $checkAccount = mysqli_query($conn, "SELECT * FROM users WHERE nomor_telepon='$nomor_telepon'");
   if (mysqli_num_rows($checkAccount) > 0) {
@@ -67,8 +73,8 @@ function daftar_pelayaran($conn, $data, $baseURL)
       $en_user = crc32($nomor_telepon);
       for ($i = 0; $i < count($nama); $i++) {
         $id_penumpang = $lastIdPenumpang + 1;
-        mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, id_kelas, nama, id_jk, umur, alamat) VALUES ('$id_penumpang', '$id_kelas[$i]', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]')");
-        mysqli_query($conn, "INSERT INTO pemesanan (id_user, id_jadwal, id_penumpang, id_golongan, no_pemesanan) VALUES ('$id_user', '$id_jadwal', '$id_penumpang', '$id_golongan', '$no_pemesanan')");
+        mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, id_kelas, nama, id_jk, umur, alamat, id_golongan) VALUES ('$id_penumpang', '$id_kelas[$i]', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]', '$id_golongan[$i]')");
+        mysqli_query($conn, "INSERT INTO pemesanan (id_user, id_jadwal, id_penumpang, no_pemesanan, tgl_pesan) VALUES ('$id_user', '$id_jadwal', '$id_penumpang', '$no_pemesanan', '$tgl_pesan')");
         $lastIdPenumpang = $id_penumpang;
       }
 
@@ -91,8 +97,8 @@ function daftar_pelayaran($conn, $data, $baseURL)
     mysqli_query($conn, "INSERT INTO users(id_user,en_user,username,nomor_telepon) VALUES('$id_user','$en_user','penumpang_$en_user','$nomor_telepon')");
     for ($i = 0; $i < count($nama); $i++) {
       $id_penumpang = $lastIdPenumpang + 1;
-      mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, id_kelas, nama, id_jk, umur, alamat) VALUES ('$id_penumpang', '$id_kelas[$i]', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]')");
-      mysqli_query($conn, "INSERT INTO pemesanan (id_user, id_jadwal, id_penumpang, id_golongan, no_pemesanan) VALUES ('$id_user', '$id_jadwal', '$id_penumpang', '$id_golongan', '$no_pemesanan')");
+      mysqli_query($conn, "INSERT INTO penumpang (id_penumpang, id_kelas, nama, id_jk, umur, alamat, id_golongan) VALUES ('$id_penumpang', '$id_kelas[$i]', '$nama[$i]', '$id_jk[$i]', '$umur[$i]', '$alamat[$i]', '$id_golongan[$i]')");
+      mysqli_query($conn, "INSERT INTO pemesanan (id_user, id_jadwal, id_penumpang, no_pemesanan) VALUES ('$id_user', '$id_jadwal', '$id_penumpang', '$no_pemesanan')");
       $lastIdPenumpang = $id_penumpang;
     }
 
