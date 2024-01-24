@@ -102,60 +102,65 @@ $_SESSION["page-url"] = "pembayaran";
                                       <button type="button" class="btn btn-success btn-sm text-white rounded-0 border-0" style="height: 30px;" data-bs-toggle="modal" data-bs-target="#bayar<?= $row["no_pemesanan"] ?>">
                                         <i class="mdi mdi-cash-multiple"></i> Bayar
                                       </button>
-                                      <?php $idPesanan = $row["id_pemesanan"];
-                                      $tanggalPembelian = $row["tgl_pesan"];
+                                      <?php
+                                      $select_pembayaran = "SELECT * FROM pembayaran WHERE no_pemesanan='$row[no_pemesanan]'";
+                                      $take_pembayaran = mysqli_query($conn, $select_pembayaran);
+                                      if (mysqli_num_rows($take_pembayaran) == 0) {
+                                        $idPesanan = $row["id_pemesanan"];
+                                        $tanggalPembelian = $row["tgl_pesan"];
 
-                                      // Menghitung waktu kedaluwarsa
-                                      $waktuKedaluwarsa = hitungWaktuExpired($tanggalPembelian); ?>
-                                      <p><span id="timer<?= $row["id_pemesanan"] ?>"></span></p>
+                                        // Menghitung waktu kedaluwarsa
+                                        $waktuKedaluwarsa = hitungWaktuExpired($tanggalPembelian); ?>
+                                        <p><span id="timer<?= $row["id_pemesanan"] ?>"></span></p>
 
-                                      <script>
-                                        // Menghitung waktu mundur dari waktu kedaluwarsa
-                                        var waktuKedaluwarsa<?= $idPesanan; ?> = new Date("<?= $waktuKedaluwarsa; ?>").getTime();
-                                        var idPesanan = <?= $idPesanan; ?>;
+                                        <script>
+                                          // Menghitung waktu mundur dari waktu kedaluwarsa
+                                          var waktuKedaluwarsa<?= $idPesanan; ?> = new Date("<?= $waktuKedaluwarsa; ?>").getTime();
+                                          var idPesanan = <?= $idPesanan; ?>;
 
-                                        // Mendapatkan elemen HTML untuk menampilkan timer
-                                        var timerDisplay<?= $idPesanan; ?> = document.getElementById('timer<?= $idPesanan; ?>');
+                                          // Mendapatkan elemen HTML untuk menampilkan timer
+                                          var timerDisplay<?= $idPesanan; ?> = document.getElementById('timer<?= $idPesanan; ?>');
 
-                                        // Fungsi untuk mengupdate timer setiap detik
-                                        function updateTimer() {
-                                          var sekarang = new Date().getTime();
+                                          // Fungsi untuk mengupdate timer setiap detik
+                                          function updateTimer() {
+                                            var sekarang = new Date().getTime();
 
-                                          // Menghitung selisih waktu
-                                          var selisih = waktuKedaluwarsa<?= $idPesanan; ?> - sekarang;
+                                            // Menghitung selisih waktu
+                                            var selisih = waktuKedaluwarsa<?= $idPesanan; ?> - sekarang;
 
-                                          // Menghitung menit dan detik yang tersisa
-                                          var menit = Math.floor(selisih / (1000 * 60));
-                                          var detik = Math.floor((selisih % (1000 * 60)) / 1000);
+                                            // Menghitung menit dan detik yang tersisa
+                                            var menit = Math.floor(selisih / (1000 * 60));
+                                            var detik = Math.floor((selisih % (1000 * 60)) / 1000);
 
-                                          // Menampilkan waktu tersisa pada elemen HTML
-                                          timerDisplay<?= $idPesanan; ?>.textContent = 'Pesanan Akan Dibatalkan Otomatis Dalam ' + menit.toString().padStart(2, '0') + ':' + detik.toString().padStart(2, '0');
+                                            // Menampilkan waktu tersisa pada elemen HTML
+                                            timerDisplay<?= $idPesanan; ?>.textContent = 'Pesanan Akan Dibatalkan Otomatis Dalam ' + menit.toString().padStart(2, '0') + ':' + detik.toString().padStart(2, '0');
 
-                                          // Menghentikan timer ketika mencapai 0
-                                          if (selisih < 0) {
-                                            clearInterval(timerInterval<?= $idPesanan; ?>);
-                                            timerDisplay<?= $idPesanan; ?>.textContent = 'Pemesanan Dibatalkan Otomatis';
+                                            // Menghentikan timer ketika mencapai 0
+                                            if (selisih < 0) {
+                                              clearInterval(timerInterval<?= $idPesanan; ?>);
+                                              timerDisplay<?= $idPesanan; ?>.textContent = 'Pemesanan Dibatalkan Otomatis';
 
-                                            // Lakukan pembaruan data di database saat waktu kedaluwarsa
-                                            if (idPesanan !== null) {
-                                              // Kirim permintaan AJAX ke skrip PHP untuk memperbarui status pesanan
-                                              var xhr = new XMLHttpRequest();
-                                              xhr.open('POST', 'update-pembayaran.php', true); // Ubah 'update-status.php' dengan nama file PHP yang sesuai
-                                              xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                                              xhr.onreadystatechange = function() {
-                                                if (xhr.readyState === 4 && xhr.status === 200) {
-                                                  console.log('Status pesanan diperbarui.');
-                                                }
-                                              };
-                                              xhr.send('id=' + idPesanan);
+                                              // Lakukan pembaruan data di database saat waktu kedaluwarsa
+                                              if (idPesanan !== null) {
+                                                // Kirim permintaan AJAX ke skrip PHP untuk memperbarui status pesanan
+                                                var xhr = new XMLHttpRequest();
+                                                xhr.open('POST', 'update-pembayaran.php', true); // Ubah 'update-status.php' dengan nama file PHP yang sesuai
+                                                xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                                                xhr.onreadystatechange = function() {
+                                                  if (xhr.readyState === 4 && xhr.status === 200) {
+                                                    console.log('Status pesanan diperbarui.');
+                                                  }
+                                                };
+                                                xhr.send('id=' + idPesanan);
+                                              }
                                             }
                                           }
-                                        }
 
-                                        // Memulai timer
-                                        updateTimer(); // Menampilkan waktu awal
-                                        var timerInterval<?= $idPesanan; ?> = setInterval(updateTimer, 1000); // Memanggil fungsi updateTimer setiap 1 detik
-                                      </script>
+                                          // Memulai timer
+                                          updateTimer(); // Menampilkan waktu awal
+                                          var timerInterval<?= $idPesanan; ?> = setInterval(updateTimer, 1000); // Memanggil fungsi updateTimer setiap 1 detik
+                                        </script>
+                                      <?php } ?>
                                       <div class="modal fade" id="bayar<?= $row["no_pemesanan"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                         <div class="modal-dialog">
                                           <div class="modal-content">
